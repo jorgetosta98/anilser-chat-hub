@@ -9,7 +9,7 @@ interface AILoadingProps {
 export function AILoading({ message = "Processando...", className = "" }: AILoadingProps) {
   return (
     <div 
-      className={`min-h-screen flex flex-col items-center justify-center space-y-6 ${className}`}
+      className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center space-y-6 ${className}`}
       style={{ backgroundColor: '#0D9488' }}
     >
       {/* Container do ícone com animação */}
