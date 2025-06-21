@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,20 +38,17 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Custom personalization variables */
+    --primary-color: #0d9488;
+    --secondary-color: #14b8a6;
   }
 
   .dark {
@@ -99,5 +97,33 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Custom utility classes for personalization */
+@layer utilities {
+  .bg-primary-custom {
+    background-color: var(--primary-color);
+  }
+  
+  .text-primary-custom {
+    color: var(--primary-color);
+  }
+  
+  .border-primary-custom {
+    border-color: var(--primary-color);
+  }
+  
+  .bg-secondary-custom {
+    background-color: var(--secondary-color);
+  }
+  
+  .text-secondary-custom {
+    color: var(--secondary-color);
+  }
+  
+  .border-secondary-custom {
+    border-color: var(--secondary-color);
   }
 }
