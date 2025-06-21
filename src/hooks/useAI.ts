@@ -1,18 +1,24 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { KnowledgeBaseType } from './useKnowledgeBase';
 
 export function useAI() {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generateResponse = async (message: string, conversationHistory: any[] = []) => {
+  const generateResponse = async (
+    message: string, 
+    conversationHistory: any[] = [], 
+    knowledgeBase: KnowledgeBaseType = 'normal'
+  ) => {
     setIsGenerating(true);
     
     try {
       const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: {
           message,
-          conversationHistory: conversationHistory.slice(-10) // Últimas 10 mensagens para contexto
+          conversationHistory: conversationHistory.slice(-10), // Últimas 10 mensagens para contexto
+          knowledgeBase
         }
       });
 

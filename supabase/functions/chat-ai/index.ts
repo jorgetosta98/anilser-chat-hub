@@ -12,10 +12,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Função para buscar documentos relevantes na base de conhecimento
-async function searchKnowledgeBase(query: string, supabase: any) {
+// Função para buscar documentos relevantes na base de conhecimento normal
+async function searchNormalKnowledgeBase(query: string, supabase: any) {
   try {
-    // Busca mais ampla usando diferentes estratégias
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
     
     const { data, error } = await supabase
@@ -31,14 +30,44 @@ async function searchKnowledgeBase(query: string, supabase: any) {
       .limit(3);
 
     if (error) {
-      console.error('Erro ao buscar na base de conhecimento:', error);
+      console.error('Erro ao buscar na base de conhecimento normal:', error);
       return [];
     }
 
-    console.log(`Busca por "${query}" encontrou ${data?.length || 0} documentos`);
+    console.log(`Busca normal por "${query}" encontrou ${data?.length || 0} documentos`);
     return data || [];
   } catch (error) {
-    console.error('Erro na busca da base de conhecimento:', error);
+    console.error('Erro na busca da base de conhecimento normal:', error);
+    return [];
+  }
+}
+
+// Função para buscar conversas do WhatsApp relevantes
+async function searchWhatsAppKnowledgeBase(query: string, supabase: any) {
+  try {
+    // Assumindo que existe uma tabela 'whatsapp_conversations' ou similar
+    // Vou usar a tabela messages como exemplo para conversas do WhatsApp
+    const { data, error } = await supabase
+      .from('messages')
+      .select(`
+        content,
+        created_at,
+        conversation_id
+      `)
+      .ilike('content', `%${query}%`)
+      .eq('is_user', false) // Apenas respostas da IA/assistente
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error('Erro ao buscar na base WhatsApp:', error);
+      return [];
+    }
+
+    console.log(`Busca WhatsApp por "${query}" encontrou ${data?.length || 0} conversas`);
+    return data || [];
+  } catch (error) {
+    console.error('Erro na busca da base WhatsApp:', error);
     return [];
   }
 }
@@ -63,7 +92,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversationHistory } = await req.json();
+    const { message, conversationHistory, knowledgeBase = 'normal' } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error('OPENAI_API_KEY não configurada');
@@ -79,74 +108,115 @@ serve(async (req) => {
     // Extrair palavras-chave da mensagem do usuário
     const keywords = extractKeywords(message);
     console.log('Palavras-chave extraídas:', keywords);
+    console.log('Base de conhecimento selecionada:', knowledgeBase);
 
-    // Buscar documentos relevantes na base de conhecimento
+    // Buscar documentos relevantes baseado na base de conhecimento selecionada
     let knowledgeContext = '';
     let foundDocuments = [];
     
     if (keywords.length > 0) {
-      // Tentar busca com a frase completa primeiro
-      foundDocuments = await searchKnowledgeBase(message, supabase);
-      
-      // Se não encontrar, tentar com palavras-chave separadas
-      if (foundDocuments.length === 0) {
-        for (const keyword of keywords) {
-          const docs = await searchKnowledgeBase(keyword, supabase);
-          foundDocuments = [...foundDocuments, ...docs];
-          if (foundDocuments.length >= 3) break; // Limitar a 3 documentos
+      if (knowledgeBase === 'whatsapp') {
+        // Buscar na base WhatsApp
+        foundDocuments = await searchWhatsAppKnowledgeBase(message, supabase);
+        
+        if (foundDocuments.length > 0) {
+          knowledgeContext = '\n\n=== INFORMAÇÕES DAS CONVERSAS DO WHATSAPP ===\n';
+          knowledgeContext += `Encontrei ${foundDocuments.length} conversa(s) relevante(s) do WhatsApp:\n\n`;
+          
+          foundDocuments.forEach((doc, index) => {
+            knowledgeContext += `--- CONVERSA ${index + 1} ---\n`;
+            knowledgeContext += `Data: ${new Date(doc.created_at).toLocaleString('pt-BR')}\n`;
+            knowledgeContext += `Conteúdo: ${doc.content}\n\n`;
+          });
+          
+          knowledgeContext += '=== FIM DAS INFORMAÇÕES DO WHATSAPP ===\n\n';
+          
+          console.log(`✅ Encontradas ${foundDocuments.length} conversas do WhatsApp relevantes`);
+        }
+      } else {
+        // Buscar na base normal
+        foundDocuments = await searchNormalKnowledgeBase(message, supabase);
+        
+        // Se não encontrar, tentar com palavras-chave separadas
+        if (foundDocuments.length === 0) {
+          for (const keyword of keywords) {
+            const docs = await searchNormalKnowledgeBase(keyword, supabase);
+            foundDocuments = [...foundDocuments, ...docs];
+            if (foundDocuments.length >= 3) break;
+          }
+        }
+        
+        // Remover duplicatas
+        foundDocuments = foundDocuments.filter((doc, index, self) => 
+          index === self.findIndex(d => d.title === doc.title)
+        );
+        
+        if (foundDocuments.length > 0) {
+          knowledgeContext = '\n\n=== INFORMAÇÕES DA BASE DE CONHECIMENTO DA EMPRESA ===\n';
+          knowledgeContext += `Encontrei ${foundDocuments.length} documento(s) relevante(s) na base de conhecimento:\n\n`;
+          
+          foundDocuments.forEach((doc, index) => {
+            knowledgeContext += `--- DOCUMENTO ${index + 1}: ${doc.title} ---\n`;
+            if (doc.category?.name) {
+              knowledgeContext += `Categoria: ${doc.category.name}\n`;
+            }
+            if (doc.summary) {
+              knowledgeContext += `Resumo: ${doc.summary}\n`;
+            }
+            knowledgeContext += `Conteúdo: ${doc.content}\n\n`;
+          });
+          
+          knowledgeContext += '=== FIM DAS INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n\n';
+          
+          console.log(`✅ Encontrados ${foundDocuments.length} documentos relevantes`);
         }
       }
       
-      // Remover duplicatas
-      foundDocuments = foundDocuments.filter((doc, index, self) => 
-        index === self.findIndex(d => d.title === doc.title)
-      );
-      
-      if (foundDocuments.length > 0) {
-        knowledgeContext = '\n\n=== INFORMAÇÕES DA BASE DE CONHECIMENTO DA EMPRESA ===\n';
-        knowledgeContext += `Encontrei ${foundDocuments.length} documento(s) relevante(s) na base de conhecimento:\n\n`;
-        
-        foundDocuments.forEach((doc, index) => {
-          knowledgeContext += `--- DOCUMENTO ${index + 1}: ${doc.title} ---\n`;
-          if (doc.category?.name) {
-            knowledgeContext += `Categoria: ${doc.category.name}\n`;
-          }
-          if (doc.summary) {
-            knowledgeContext += `Resumo: ${doc.summary}\n`;
-          }
-          knowledgeContext += `Conteúdo: ${doc.content}\n\n`;
-        });
-        
-        knowledgeContext += '=== FIM DAS INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n\n';
-        
-        console.log(`✅ Encontrados ${foundDocuments.length} documentos relevantes para incluir no contexto`);
-      } else {
-        console.log('❌ Nenhum documento relevante foi encontrado na base de conhecimento');
+      if (foundDocuments.length === 0) {
+        console.log(`❌ Nenhum documento relevante foi encontrado na base ${knowledgeBase}`);
       }
     }
 
-    // Construir o prompt do sistema com instruções mais claras
-    const systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional. 
+    // Construir o prompt do sistema baseado na base de conhecimento
+    let systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional. 
 
     INSTRUÇÕES IMPORTANTES:
     - Responda SEMPRE em português brasileiro
     - Seja preciso e técnico quando necessário
     - Cite normas regulamentadoras (NRs) quando relevante
     - Seja prestativo e educativo
-    - Mantenha um tom profissional mas acessível
+    - Mantenha um tom profissional mas acessível`;
+
+    if (knowledgeBase === 'whatsapp') {
+      systemPrompt += `
+    
+    SOBRE AS CONVERSAS DO WHATSAPP:
+    - Você tem acesso ao histórico de conversas do WhatsApp da empresa
+    - SEMPRE priorize as informações das conversas do WhatsApp em suas respostas
+    - Quando usar informações das conversas, mencione que são "informações do histórico WhatsApp"
+    - Use o contexto das conversas anteriores para dar respostas mais personalizadas
+    - Complemente com conhecimento geral apenas quando necessário`;
+    } else {
+      systemPrompt += `
     
     SOBRE A BASE DE CONHECIMENTO:
     - Você tem acesso à base de conhecimento específica da empresa do cliente
     - SEMPRE priorize as informações da base de conhecimento da empresa em suas respostas
     - Quando usar informações da base de conhecimento, mencione que são "informações específicas da empresa"
     - Se encontrar informações relevantes na base de conhecimento, use-as como fonte principal
-    - Complemente com conhecimento geral apenas quando necessário
+    - Complemente com conhecimento geral apenas quando necessário`;
+    }
+
+    systemPrompt += `
     
     ${knowledgeContext}
     
     ${foundDocuments.length > 0 ? 
-      'IMPORTANTE: Use as informações acima da base de conhecimento para responder à pergunta do usuário. Essas são informações específicas da empresa e devem ter prioridade na sua resposta.' : 
-      'Não foram encontradas informações específicas na base de conhecimento para esta pergunta. Responda com seu conhecimento geral sobre segurança do trabalho.'
+      (knowledgeBase === 'whatsapp' ? 
+        'IMPORTANTE: Use as informações acima das conversas do WhatsApp para responder à pergunta do usuário. Essas são conversas reais da empresa e devem ter prioridade na sua resposta.' :
+        'IMPORTANTE: Use as informações acima da base de conhecimento para responder à pergunta do usuário. Essas são informações específicas da empresa e devem ter prioridade na sua resposta.'
+      ) : 
+      `Não foram encontradas informações específicas na base ${knowledgeBase === 'whatsapp' ? 'WhatsApp' : 'de conhecimento'} para esta pergunta. Responda com seu conhecimento geral sobre segurança do trabalho.`
     }`;
 
     const messages = [
@@ -161,7 +231,7 @@ serve(async (req) => {
       { role: 'user', content: message }
     ];
 
-    console.log('Enviando para OpenAI com contexto da base de conhecimento...');
+    console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase}...`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

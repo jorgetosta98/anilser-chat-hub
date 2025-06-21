@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Paperclip, Send, ArrowUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mic, Send, ArrowUp, Database } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
 import { useAI } from "@/hooks/useAI";
 import { useConversations } from "@/hooks/useConversations";
 import { useNavigate } from "react-router-dom";
+import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
 
 interface MessageInputProps {
   conversationId: string | null;
@@ -19,6 +21,12 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
   const { generateResponse, isGenerating } = useAI();
   const { createConversation } = useConversations();
   const navigate = useNavigate();
+  const { 
+    selectedKnowledgeBase, 
+    setSelectedKnowledgeBase, 
+    getSelectedKnowledgeBase,
+    knowledgeBases 
+  } = useKnowledgeBase();
 
   const handleSendMessage = async () => {
     if (!message.trim() || isAddingMessage || isGenerating) return;
@@ -46,9 +54,9 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     // Add user message
     addMessage({ content: userMessage, isUser: true });
 
-    // Generate AI response
+    // Generate AI response with knowledge base context
     try {
-      const aiResponse = await generateResponse(userMessage, messages);
+      const aiResponse = await generateResponse(userMessage, messages, selectedKnowledgeBase);
       addMessage({ content: aiResponse, isUser: false });
     } catch (error) {
       console.error('Erro ao gerar resposta:', error);
@@ -71,14 +79,34 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
   return (
     <div className="border-t bg-white p-4">
       <div className="max-w-4xl mx-auto">
+        {/* Knowledge Base Selection */}
+        <div className="mb-3">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-gray-700">Base de Conhecimento:</span>
+            <Select 
+              value={selectedKnowledgeBase} 
+              onValueChange={setSelectedKnowledgeBase}
+            >
+              <SelectTrigger className="w-64 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {knowledgeBases.map((kb) => (
+                  <SelectItem key={kb.id} value={kb.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{kb.name}</span>
+                      <span className="text-xs text-gray-500">{kb.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Message Input */}
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-primary"
-          >
-            <Paperclip className="w-5 h-5" />
-          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
@@ -88,7 +116,7 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
           </Button>
           <div className="flex-1 relative">
             <Input
-              placeholder="Digite sua pergunta sobre segurança do trabalho..."
+              placeholder={`Digite sua pergunta (${getSelectedKnowledgeBase().name})...`}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
