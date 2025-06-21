@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -18,8 +17,7 @@ export default function Auth() {
     email: '', 
     password: '', 
     confirmPassword: '', 
-    fullName: '',
-    role: 'client' as 'admin' | 'client'
+    fullName: ''
   });
   
   const { signIn, signUp } = useAuth();
@@ -85,7 +83,7 @@ export default function Auth() {
         signupForm.email, 
         signupForm.password, 
         signupForm.fullName,
-        signupForm.role
+        'client' // Sempre criar como cliente
       );
       
       if (error) {
@@ -201,18 +199,6 @@ export default function Auth() {
                       onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                       placeholder="seu@email.com"
                     />
-                  </div>
-                  <div>
-                    <Label htmlFor="signup-role">Tipo de conta</Label>
-                    <Select value={signupForm.role} onValueChange={(value: 'admin' | 'client') => setSignupForm({ ...signupForm, role: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de conta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="client">Cliente</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="signup-password">Senha</Label>
