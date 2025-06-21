@@ -29,7 +29,7 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
               Conversas Recentes
             </h3>
             <div className="space-y-1 flex-1">
-              {recentChats.slice(0, 8).map(chat => (
+              {recentChats.slice(0, 9).map(chat => (
                 <SidebarMenuItem
                   key={chat.id}
                   item={{
