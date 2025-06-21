@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentFormValidation } from "@/hooks/useDocumentFormValidation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DocumentFormData {
   id?: string;
@@ -37,6 +38,7 @@ export function useDocumentFormSubmission({
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const { validateForm } = useDocumentFormValidation();
+  const { user } = useAuth();
 
   const uploadFileToStorage = async (file: File): Promise<string> => {
     const fileName = `${Date.now()}-${file.name}`;
@@ -57,6 +59,15 @@ export function useDocumentFormSubmission({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para salvar documentos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const isValid = validateForm({
       title: formData.title,
       content: formData.content,
@@ -69,12 +80,6 @@ export function useDocumentFormSubmission({
     setIsLoading(true);
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       let fileUrl = formData.file_url;
       let fileType = formData.file_type;
 
@@ -94,7 +99,7 @@ export function useDocumentFormSubmission({
         file_url: fileUrl || null,
         file_type: fileType || null,
         is_public: formData.is_public,
-        user_id: user.id, // Use user_id instead of author_id to match database schema
+        user_id: user.id,
       };
 
       if (document?.id) {
@@ -112,7 +117,7 @@ export function useDocumentFormSubmission({
       } else {
         const { error } = await supabase
           .from('knowledge_documents')
-          .insert(documentData); // Remove array brackets - insert single object
+          .insert(documentData);
 
         if (error) throw error;
 

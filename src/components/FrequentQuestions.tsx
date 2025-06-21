@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useConversations } from "@/hooks/useConversations";
 import { useUserFrequentQuestions } from "@/hooks/useUserFrequentQuestions";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Heart } from "lucide-react";
+import { MessageCircle, Heart, Loader2 } from "lucide-react";
 
 const defaultQuestions = [
   "Quais são os EPIs obrigatórios para trabalho em altura?",
@@ -46,17 +46,8 @@ export function FrequentQuestions() {
     return (
       <div className="w-full">
         <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Perguntas Frequentes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="border-gray-200">
-              <CardContent className="p-4">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -73,7 +64,7 @@ export function FrequentQuestions() {
         )}
       </div>
       
-      {!showPersonalQuestions && questions.length === 0 && (
+      {!showPersonalQuestions && (
         <div className="text-center mb-4 p-4 bg-blue-50 rounded-lg">
           <MessageCircle className="w-8 h-8 text-blue-500 mx-auto mb-2" />
           <p className="text-sm text-gray-600">

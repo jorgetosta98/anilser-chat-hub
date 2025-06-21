@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentFormModal } from "@/components/client/modals/DocumentFormModal";
@@ -5,116 +6,30 @@ import { KnowledgePageHeader } from "@/components/knowledge/KnowledgePageHeader"
 import { KnowledgeFilters } from "@/components/knowledge/KnowledgeFilters";
 import { DocumentList } from "@/components/knowledge/DocumentList";
 import { IntelligentSearchPanel } from "@/components/knowledge/IntelligentSearchPanel";
-import { supabase } from "@/integrations/supabase/client";
+import { useKnowledgeDocuments } from "@/hooks/useKnowledgeDocuments";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, List } from "lucide-react";
 
-interface KnowledgeDocument {
-  id: string;
-  title: string;
-  content: string;
-  summary?: string;
-  category_id?: string;
-  category?: {
-    name: string;
-    color: string;
-  };
-  tags: string[];
-  file_url?: string;
-  file_type?: string;
-  is_public: boolean;
-  views_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
-
 export default function BaseConhecimento() {
-  const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDocuments();
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('knowledge_categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as categorias.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchDocuments = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('knowledge_documents')
-        .select(`
-          *,
-          category:knowledge_categories(name, color)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDocuments(data || []);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os documentos.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Use the refactored hook that now handles user-specific data
+  const {
+    documents,
+    categories,
+    isLoading,
+    fetchDocuments,
+    createDocument,
+    updateDocument,
+    deleteDocument,
+  } = useKnowledgeDocuments();
 
   const handleDeleteDocument = async (documentId: string) => {
-    try {
-      const { error } = await supabase
-        .from('knowledge_documents')
-        .delete()
-        .eq('id', documentId);
-
-      if (error) throw error;
-
-      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
-      toast({
-        title: "Documento removido",
-        description: "O documento foi removido da base de conhecimento.",
-      });
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o documento.",
-        variant: "destructive",
-      });
-    }
+    await deleteDocument(documentId);
   };
 
   const handleSaveDocument = async () => {
@@ -127,7 +42,7 @@ export default function BaseConhecimento() {
     setIsDocumentModalOpen(true);
   };
 
-  const openEditModal = (document: KnowledgeDocument) => {
+  const openEditModal = (document: any) => {
     setEditingDocument(document);
     setIsDocumentModalOpen(true);
   };
