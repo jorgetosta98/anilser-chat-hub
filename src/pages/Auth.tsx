@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Building } from 'lucide-react';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,8 @@ export default function Auth() {
     email: '', 
     password: '', 
     confirmPassword: '', 
-    fullName: ''
+    fullName: '',
+    company: ''
   });
   
   const { signIn, signUp } = useAuth();
@@ -83,7 +84,8 @@ export default function Auth() {
         signupForm.email, 
         signupForm.password, 
         signupForm.fullName,
-        'client' // Sempre criar como cliente
+        'client', // Sempre criar como cliente
+        signupForm.company
       );
       
       if (error) {
@@ -199,6 +201,20 @@ export default function Auth() {
                       onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                       placeholder="seu@email.com"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-company">Empresa</Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="signup-company"
+                        type="text"
+                        value={signupForm.company}
+                        onChange={(e) => setSignupForm({ ...signupForm, company: e.target.value })}
+                        placeholder="Nome da sua empresa"
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="signup-password">Senha</Label>

@@ -11,7 +11,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'client') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, role?: 'admin' | 'client', company?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'client' = 'client') => {
+  const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'client' = 'client', company?: string) => {
     try {
       // Clean up existing state
       cleanupAuthState();
@@ -105,15 +105,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const redirectUrl = `${window.location.origin}/`;
       
+      const metadata: any = {
+        full_name: fullName,
+        role: role
+      };
+      
+      if (company) {
+        metadata.company = company;
+      }
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-            role: role
-          }
+          data: metadata
         }
       });
       
