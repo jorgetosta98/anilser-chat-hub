@@ -1,11 +1,13 @@
 
 import { MessageSquare, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { SidebarMenuItem } from "./SidebarMenuItem";
 import { regularTopMenuItems, regularBottomMenuItems } from "./menuData";
 import { useConversations } from "@/hooks/useConversations";
+import { useMessages } from "@/hooks/useMessages";
 import { Button } from "@/components/ui/button";
+import { QuickFeedbackModal } from "../modals/QuickFeedbackModal";
 
 interface RegularUserSidebarProps {
   isCollapsed: boolean;
@@ -13,14 +15,28 @@ interface RegularUserSidebarProps {
 
 export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
   const [showRecentChats, setShowRecentChats] = useState(true);
-  const { conversations, createConversation } = useConversations();
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const { conversations } = useConversations();
   const navigate = useNavigate();
+  const { chatId } = useParams();
+  
+  // Buscar mensagens da conversa atual para o modal de feedback
+  const { messages } = useMessages(chatId || null);
 
   const handleNewConversation = async () => {
-    const newConversation = await createConversation('Nova Conversa');
-    if (newConversation) {
-      navigate(`/chat/${newConversation.id}`);
+    // Se há uma conversa ativa, mostrar modal de avaliação primeiro
+    if (chatId && messages && messages.length > 0) {
+      setShowFeedbackModal(true);
+    } else {
+      // Se não há conversa ativa, ir diretamente para a tela inicial
+      navigate('/chat');
     }
+  };
+
+  const handleFeedbackClose = () => {
+    setShowFeedbackModal(false);
+    // Após o feedback, redirecionar para a tela inicial
+    navigate('/chat');
   };
 
   const formatDate = (dateString: string) => {
@@ -38,6 +54,11 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
       return date.toLocaleDateString('pt-BR');
     }
   };
+
+  // Obter a última mensagem para personalizar o modal
+  const lastMessage = messages && messages.length > 0 
+    ? messages[messages.length - 1]?.content 
+    : undefined;
 
   return (
     <>
@@ -113,6 +134,14 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
           ))}
         </div>
       </div>
+
+      {/* Modal de Feedback para avaliar conversa anterior */}
+      <QuickFeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={handleFeedbackClose}
+        conversationId={chatId}
+        lastMessage={lastMessage}
+      />
     </>
   );
 }
