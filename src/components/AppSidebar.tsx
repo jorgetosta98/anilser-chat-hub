@@ -1,3 +1,4 @@
+
 import { MessageSquare, Plus, BarChart3, Link, User, LogOut, Shield, Menu, ChevronDown, ChevronRight, FileText, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -15,6 +16,7 @@ const topMenuItems = [{
   path: "/chat",
   expandable: true
 }];
+
 const bottomMenuItems = [{
   title: "Base de Conhecimento",
   icon: FileText,
@@ -38,8 +40,9 @@ const bottomMenuItems = [{
 }, {
   title: "Sair",
   icon: LogOut,
-  path: "/sair",
-  danger: true
+  path: "/login",
+  danger: true,
+  action: "logout"
 }];
 
 // Mock data for chat history - in a real app, this would come from your state management
@@ -60,23 +63,53 @@ const chatHistory = [{
   title: "Integração WhatsApp",
   date: "3 dias atrás"
 }];
+
 export function AppSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const location = useLocation();
+
+  const handleLogout = () => {
+    // Clear any stored user data, tokens, etc.
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Redirect to login page
+    window.location.href = '/login';
+  };
+
   const renderMenuItem = (item: any) => {
     const isActive = location.pathname === item.path;
     const IconComponent = item.icon;
+
+    if (item.action === "logout") {
+      return (
+        <Button
+          key={item.title}
+          variant="ghost"
+          onClick={handleLogout}
+          className={`w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary hover:text-destructive ${isCollapsed ? 'px-2' : 'px-4'}`}
+        >
+          <IconComponent className="w-4 h-4" />
+          {!isCollapsed && <span className="ml-2">{item.title}</span>}
+        </Button>
+      );
+    }
+
     if (item.action) {
-      return <RouterLink key={item.title} to={item.path}>
-          <Button className={`w-full justify-start bg-primary hover:bg-primary-700 text-white ${isCollapsed ? 'px-2' : 'px-4'}`}>
+      return (
+        <RouterLink key={item.title} to={item.path}>
+          <Button className={`w-full justify-start bg-primary hover:bg-primary/90 text-white ${isCollapsed ? 'px-2' : 'px-4'}`}>
             <IconComponent className="w-4 h-4" />
             {!isCollapsed && <span className="ml-2">{item.title}</span>}
           </Button>
-        </RouterLink>;
+        </RouterLink>
+      );
     }
+
     if (item.expandable && !isCollapsed) {
-      return <div key={item.title} className="space-y-1">
+      return (
+        <div key={item.title} className="space-y-1">
           <Collapsible open={isChatExpanded} onOpenChange={setIsChatExpanded}>
             <div className="flex items-center">
               <RouterLink to={item.path} className="flex-1">
@@ -93,58 +126,76 @@ export function AppSidebar() {
             </div>
             <CollapsibleContent className="space-y-1">
               <div className="ml-6 space-y-1 mx-0">
-                {chatHistory.map(chat => <RouterLink key={chat.id} to={`/chat/${chat.id}`}>
+                {chatHistory.map(chat => (
+                  <RouterLink key={chat.id} to={`/chat/${chat.id}`}>
                     <Button variant="ghost" className="w-full justify-start text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary px-2 py-1 h-8">
                       <span className="truncate">{chat.title}</span>
                     </Button>
-                  </RouterLink>)}
+                  </RouterLink>
+                ))}
               </div>
             </CollapsibleContent>
           </Collapsible>
-        </div>;
+        </div>
+      );
     }
-    return <RouterLink key={item.title} to={item.path}>
+
+    return (
+      <RouterLink key={item.title} to={item.path}>
         <Button variant="ghost" className={`w-full justify-start ${isActive ? 'bg-sidebar-accent text-sidebar-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary'} ${item.danger ? 'hover:text-destructive' : ''} ${isCollapsed ? 'px-2' : 'px-4'}`}>
           <IconComponent className="w-4 h-4" />
           {!isCollapsed && <span className="ml-2">{item.title}</span>}
         </Button>
-      </RouterLink>;
+      </RouterLink>
+    );
   };
-  return <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}>
+
+  return (
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col flex-shrink-0`}>
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-4 border-b border-sidebar-border flex-shrink-0">
         <div className="flex items-center justify-between">
-          {!isCollapsed && <div className="flex items-center space-x-2">
+          {!isCollapsed && (
+            <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-lg text-sidebar-foreground">Safeboy</span>
-            </div>}
-          <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)} className="text-sidebar-foreground hover:bg-sidebar-accent">
+            </div>
+          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsCollapsed(!isCollapsed)} 
+            className="text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
+          >
             <Menu className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Top Menu Items */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2 flex-shrink-0">
           {topMenuItems.map(renderMenuItem)}
         </div>
 
         {/* Spacer */}
-        <div className="flex-1" />
+        <div className="flex-1 min-h-0" />
 
         {/* Bottom Menu Items */}
-        <div className="p-4 space-y-2 border-t border-sidebar-border">
+        <div className="p-4 space-y-2 border-t border-sidebar-border flex-shrink-0">
           {bottomMenuItems.map(renderMenuItem)}
         </div>
       </div>
 
       {/* Footer */}
-      {!isCollapsed && <div className="p-4 border-t border-sidebar-border text-xs text-gray-500">
+      {!isCollapsed && (
+        <div className="p-4 border-t border-sidebar-border text-xs text-gray-500 flex-shrink-0">
           Powered by Frotas Softwares
-        </div>}
-    </div>;
+        </div>
+      )}
+    </div>
+  );
 }

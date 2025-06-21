@@ -3,13 +3,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function Register() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -28,13 +37,27 @@ export default function Login() {
 
           {/* Welcome */}
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Boas vindas!</h1>
-            <p className="text-gray-600">Insira seus dados de acesso:</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Criar conta</h1>
+            <p className="text-gray-600">Preencha os dados para se cadastrar:</p>
           </div>
 
           {/* Form */}
           <Card>
             <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Nome completo</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Seu nome completo"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">E-mail</label>
                 <div className="relative">
@@ -42,8 +65,8 @@ export default function Login() {
                   <Input
                     type="email"
                     placeholder="seuemail@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -56,8 +79,8 @@ export default function Login() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
                     className="pl-10 pr-10"
                   />
                   <button
@@ -68,10 +91,26 @@ export default function Login() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <div className="text-right">
-                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                    Esqueci Minha Senha
-                  </Link>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Confirmar senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    className="pl-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -79,13 +118,13 @@ export default function Login() {
                 className="w-full bg-primary hover:bg-primary/90 text-white"
                 onClick={() => window.location.href = '/'}
               >
-                Entrar
+                Criar conta
               </Button>
 
               <div className="text-center text-sm text-gray-600">
-                Não tem uma conta?{" "}
-                <Link to="/register" className="text-primary hover:underline">
-                  Cadastre-se aqui.
+                Já tem uma conta?{" "}
+                <Link to="/login" className="text-primary hover:underline">
+                  Faça login aqui.
                 </Link>
               </div>
             </CardContent>
@@ -102,9 +141,9 @@ export default function Login() {
       >
         <div className="absolute inset-0 flex items-center justify-center p-8">
           <div className="text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">Segurança Inteligente</h2>
+            <h2 className="text-3xl font-bold mb-4">Junte-se à Segurança Inteligente</h2>
             <p className="text-lg opacity-90">
-              Seu assistente especializado em normas e regulamentações de segurança
+              Crie sua conta e tenha acesso completo ao seu assistente especializado em normas e regulamentações
             </p>
           </div>
         </div>
