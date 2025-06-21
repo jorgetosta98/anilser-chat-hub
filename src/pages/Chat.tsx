@@ -1,9 +1,11 @@
 
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mic, Paperclip, Send, Lightbulb, FileText, Volume2 } from "lucide-react";
+import { Mic, Paperclip, Send, Lightbulb, FileText, Volume2, ArrowUp } from "lucide-react";
+import { ChatMessage } from "@/components/ChatMessage";
 
 const quickQuestions = [
   "Tire minhas dúvidas sobre uma norma",
@@ -28,9 +30,98 @@ const frequentQuestions = [
   }
 ];
 
+// Mock chat history data
+const mockChatHistory = {
+  1: [
+    {
+      id: 1,
+      message: "Olá, estou precisando de ajuda urgente. Durante uma inspeção de rotina, descobri que o nível de concentração de vapores de solventes na área de armazenamento de produtos químicos está acima do limite permitido pelas normas regulamentadoras. Já evacuei a área e estou verificando os equipamentos de ventilação, mas preciso saber quais medidas adicionais devo tomar para garantir a segurança dos trabalhadores e a conformidade com as regulamentações. Além disso, gostaria de orientações sobre como prevenir que isso ocorra novamente no futuro. Poderia me ajudar?",
+      isUser: true,
+      timestamp: "10:30"
+    },
+    {
+      id: 2,
+      message: "Claro, vou te ajudar com isso. Vamos dividir a resposta em duas partes: ações imediatas e medidas preventivas para o futuro.\n\nAções Imediatas:\n\n1. Monitoramento Contínuo:\n   • Utilize detectores de gás portáteis para monitorar continuamente os níveis de vapores até que voltem a níveis seguros.\n   • Mantenha registros detalhados dos níveis de concentração de vapores durante esse período.\n\n2. Verificação dos Equipamentos de Ventilação:\n   • Certifique-se de que os sistemas de ventilação estão funcionando corretamente.\n   • Se houver falhas, providencie reparos imediatos ou substituições.\n   • Considere a instalação de ventilação suplementar temporária para acelerar a dispersão dos vapores.\n\n3. Equipamentos de Proteção Individual (EPIs):\n   • Garanta que todos os trabalhadores que precisem acessar a área afetada usem EPIs adequados, como máscaras respiratórias com filtros específicos para solventes.\n   • Disponibilize outros EPIs conforme necessário, como luvas e roupas resistentes a produtos químicos.\n\n4. Isolamento da Área:\n   • Mantenha a área de armazenamento isolada até que os níveis de vapores estejam dentro dos limites seguros.\n   • Sinalize a área com avisos de perigo para evitar a entrada não autorizada.\n\n5. Comunicação e Documentação:\n   • Informe imediatamente a administração e os responsáveis pela segurança sobre a situação.\n   • Documente o incidente, as medidas tomadas e os resultados dos monitoramentos.",
+      isUser: false,
+      timestamp: "10:32"
+    }
+  ]
+};
+
 export default function Chat() {
   const [message, setMessage] = useState("");
+  const { chatId } = useParams();
+  
+  // Check if we're viewing a specific chat
+  const isViewingChat = chatId && mockChatHistory[chatId as keyof typeof mockChatHistory];
+  const chatMessages = isViewingChat ? mockChatHistory[chatId as keyof typeof mockChatHistory] : [];
 
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      // In a real app, this would send the message to the backend
+      console.log("Sending message:", message);
+      setMessage("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  if (isViewingChat) {
+    return (
+      <div className="flex-1 flex flex-col h-screen bg-gray-50">
+        {/* Chat History Content */}
+        <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full">
+          <div className="space-y-4">
+            {chatMessages.map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                message={msg.message}
+                isUser={msg.isUser}
+                timestamp={msg.timestamp}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Message Input */}
+        <div className="border-t bg-white p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="icon" className="text-primary">
+                <Paperclip className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-primary">
+                <Mic className="w-5 h-5" />
+              </Button>
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Digite sua mensagem ou comando"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="pr-12 border-gray-300 focus:border-primary"
+                />
+                <Button 
+                  size="icon"
+                  onClick={handleSendMessage}
+                  className="absolute right-1 top-1 h-8 w-8 bg-primary hover:bg-primary-700"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default chat interface (welcome screen)
   return (
     <div className="flex-1 flex flex-col h-screen bg-gray-50">
       {/* Main Content */}
@@ -125,10 +216,12 @@ export default function Chat() {
                 placeholder="Digite sua mensagem ou comando"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
                 className="pr-12 border-gray-300 focus:border-primary"
               />
               <Button 
                 size="icon"
+                onClick={handleSendMessage}
                 className="absolute right-1 top-1 h-8 w-8 bg-primary hover:bg-primary-700"
               >
                 <Send className="w-4 h-4" />
