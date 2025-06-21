@@ -16,7 +16,7 @@ export default function Chat() {
       <div className="flex h-screen bg-gray-50">
         {/* Main Chat Area - Full width now */}
         <div className="flex-1 flex flex-col">
-          {isViewing Chat ? (
+          {isViewingChat ? (
             <>
               <ChatInterface conversationId={chatId} />
               <MessageInput conversationId={chatId} isViewingChat={true} />
