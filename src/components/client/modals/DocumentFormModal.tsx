@@ -1,110 +1,178 @@
 
-import { useState } from "react";
-import { FormModal } from "@/components/modals/FormModal";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Upload, File, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Document {
-  id?: string;
+interface Category {
+  id: string;
   name: string;
-  description: string;
-  category: string;
-  content?: string;
-  file?: File;
+  color: string;
+}
+
+interface DocumentFormData {
+  id?: string;
+  title: string;
+  content: string;
+  summary: string;
+  category_id: string;
   tags: string[];
+  file?: File;
+  is_public: boolean;
 }
 
 interface DocumentFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  document?: Document;
-  onSave: (document: Document) => void;
+  document?: any;
+  onSave: (documentData: DocumentFormData) => void;
 }
 
 export function DocumentFormModal({ isOpen, onClose, document, onSave }: DocumentFormModalProps) {
-  const [formData, setFormData] = useState<Document>({
-    name: document?.name || "",
-    description: document?.description || "",
-    category: document?.category || "geral",
-    content: document?.content || "",
-    tags: document?.tags || []
+  const [formData, setFormData] = useState<DocumentFormData>({
+    title: "",
+    content: "",
+    summary: "",
+    category_id: "",
+    tags: [],
+    is_public: true,
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newTag, setNewTag] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const categories = [
-    { value: "geral", label: "Geral" },
-    { value: "procedimentos", label: "Procedimentos" },
-    { value: "politicas", label: "Políticas" },
-    { value: "faq", label: "FAQ" },
-    { value: "manuais", label: "Manuais" },
-    { value: "contratos", label: "Contratos" }
-  ];
+  useEffect(() => {
+    if (document) {
+      setFormData({
+        id: document.id,
+        title: document.title || "",
+        content: document.content || "",
+        summary: document.summary || "",
+        category_id: document.category_id || "",
+        tags: document.tags || [],
+        is_public: document.is_public ?? true,
+      });
+    } else {
+      setFormData({
+        title: "",
+        content: "",
+        summary: "",
+        category_id: "",
+        tags: [],
+        is_public: true,
+      });
+    }
+  }, [document]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        toast({
-          title: "Erro",
-          description: "Arquivo muito grande. Limite de 10MB.",
-          variant: "destructive"
-        });
-        return;
-      }
-      setSelectedFile(file);
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('knowledge_categories')
+        .select('id, name, color')
+        .order('name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as categorias.",
+        variant: "destructive",
+      });
     }
   };
 
-  const addTag = () => {
+  const handleAddTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData({ ...formData, tags: [...formData.tags, newTag.trim()] });
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
       setNewTag("");
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setFormData({ ...formData, tags: formData.tags.filter(tag => tag !== tagToRemove) });
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name || (!formData.content && !selectedFile)) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.title.trim() || !formData.content.trim()) {
       toast({
-        title: "Erro",
-        description: "Nome e conteúdo (texto ou arquivo) são obrigatórios",
-        variant: "destructive"
+        title: "Campos obrigatórios",
+        description: "Título e conteúdo são obrigatórios.",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simular upload/processamento
-      
-      const documentToSave = {
-        ...formData,
-        id: document?.id || Date.now().toString(),
-        file: selectedFile || undefined
+      const documentData = {
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        summary: formData.summary.trim(),
+        category_id: formData.category_id || null,
+        tags: formData.tags,
+        is_public: formData.is_public,
       };
-      
-      onSave(documentToSave);
-      toast({
-        title: "Sucesso",
-        description: document ? "Documento atualizado com sucesso" : "Documento criado com sucesso"
-      });
+
+      if (document?.id) {
+        // Update existing document
+        const { error } = await supabase
+          .from('knowledge_documents')
+          .update(documentData)
+          .eq('id', document.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Documento atualizado",
+          description: "O documento foi atualizado com sucesso.",
+        });
+      } else {
+        // Create new document
+        const { error } = await supabase
+          .from('knowledge_documents')
+          .insert([documentData]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Documento criado",
+          description: "O documento foi criado com sucesso.",
+        });
+      }
+
+      onSave(formData);
       onClose();
     } catch (error) {
+      console.error('Error saving document:', error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar o documento",
-        variant: "destructive"
+        description: "Não foi possível salvar o documento.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -112,134 +180,116 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
   };
 
   return (
-    <FormModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={document ? "Editar Documento" : "Novo Documento"}
-      onSubmit={handleSubmit}
-      isLoading={isLoading}
-      maxWidth="max-w-2xl"
-    >
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {document ? "Editar Documento" : "Novo Documento"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">Nome do Documento *</Label>
+            <Label htmlFor="title">Título *</Label>
             <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ex: Manual de Atendimento"
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Digite o título do documento"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="summary">Resumo</Label>
+            <Input
+              id="summary"
+              value={formData.summary}
+              onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
+              placeholder="Breve resumo do documento"
             />
           </div>
 
           <div>
             <Label htmlFor="category">Categoria</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <Select
+              value={formData.category_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
+                <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        <div>
-          <Label htmlFor="description">Descrição</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Descreva brevemente o conteúdo do documento"
-            rows={3}
-          />
-        </div>
-
-        <div>
-          <Label>Conteúdo</Label>
-          <div className="space-y-4">
+          <div>
+            <Label htmlFor="content">Conteúdo *</Label>
             <Textarea
+              id="content"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              placeholder="Digite o conteúdo do documento aqui..."
-              rows={6}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              placeholder="Digite o conteúdo do documento"
+              className="min-h-[200px]"
+              required
             />
-            
-            <div className="text-center text-sm text-muted-foreground">ou</div>
-
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">Faça upload de um arquivo</p>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <label htmlFor="file-upload">
-                <Button variant="outline" size="sm" className="cursor-pointer">
-                  Selecionar Arquivo
-                </Button>
-              </label>
-              {selectedFile && (
-                <div className="mt-3 flex items-center justify-center space-x-2">
-                  <File className="w-4 h-4" />
-                  <span className="text-sm">{selectedFile.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedFile(null)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
           </div>
-        </div>
 
-        <div>
-          <Label>Tags</Label>
-          <div className="space-y-2">
-            <div className="flex space-x-2">
+          <div>
+            <Label>Tags</Label>
+            <div className="flex gap-2 mb-2">
               <Input
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Adicionar tag"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder="Digite uma tag"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
               />
-              <Button type="button" onClick={addTag} size="sm">
-                Adicionar
+              <Button type="button" onClick={handleAddTag} size="sm">
+                <Plus className="w-4 h-4" />
               </Button>
             </div>
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="ml-1 hover:bg-gray-200 rounded-full p-1"
                   >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-primary/70"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
-    </FormModal>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="is_public"
+              checked={formData.is_public}
+              onChange={(e) => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
+            />
+            <Label htmlFor="is_public">Documento público</Label>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Salvando..." : document ? "Atualizar" : "Criar"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
