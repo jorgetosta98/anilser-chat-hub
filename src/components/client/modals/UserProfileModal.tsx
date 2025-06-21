@@ -1,9 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormModal } from "@/components/modals/FormModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -21,21 +22,43 @@ export function UserProfileModal({
   onClose,
   userData
 }: UserProfileModalProps) {
+  const { updateProfile, profile } = useAuth();
   const [formData, setFormData] = useState({
-    name: userData?.name || "",
-    email: userData?.email || "",
-    phone: userData?.phone || "",
-    company: userData?.company || ""
+    name: "",
+    email: "",
+    phone: "",
+    company: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Atualizar dados do formulário quando userData ou profile mudarem
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: userData?.name || profile?.full_name || "",
+        email: userData?.email || profile?.email || "",
+        phone: userData?.phone || profile?.phone || "",
+        company: userData?.company || ""
+      });
+    }
+  }, [isOpen, userData, profile]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Atualizar perfil no Supabase
+      const { error } = await updateProfile({
+        full_name: formData.name,
+        phone: formData.phone,
+        // Nota: email não pode ser alterado diretamente via profiles
+        // seria necessário usar supabase.auth.updateUser para isso
+      });
+
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Dados atualizados",
@@ -44,6 +67,7 @@ export function UserProfileModal({
       
       onClose();
     } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao atualizar seus dados. Tente novamente.",
@@ -84,7 +108,12 @@ export function UserProfileModal({
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             placeholder="Digite seu e-mail"
+            disabled
+            className="bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            O e-mail não pode ser alterado por questões de segurança
+          </p>
         </div>
         
         <div>
@@ -106,7 +135,12 @@ export function UserProfileModal({
             value={formData.company}
             onChange={(e) => setFormData({...formData, company: e.target.value})}
             placeholder="Nome da empresa"
+            disabled
+            className="bg-gray-100"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Campo em desenvolvimento
+          </p>
         </div>
       </div>
     </FormModal>

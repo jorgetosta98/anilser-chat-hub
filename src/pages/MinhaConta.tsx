@@ -9,20 +9,22 @@ import { PasswordResetModal } from "@/components/client/modals/PasswordResetModa
 import { PlanChangeModal } from "@/components/client/modals/PlanChangeModal";
 import { PaymentMethodModal } from "@/components/client/modals/PaymentMethodModal";
 import { CancelSubscriptionModal } from "@/components/client/modals/CancelSubscriptionModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function MinhaConta() {
+  const { profile } = useAuth();
   const [userProfileModalOpen, setUserProfileModalOpen] = useState(false);
   const [passwordResetModalOpen, setPasswordResetModalOpen] = useState(false);
   const [planChangeModalOpen, setPlanChangeModalOpen] = useState(false);
   const [paymentMethodModalOpen, setPaymentMethodModalOpen] = useState(false);
   const [cancelSubscriptionModalOpen, setCancelSubscriptionModalOpen] = useState(false);
 
-  // Mock user data
+  // Dados do usuário real ou mock se não disponível
   const userData = {
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "(11) 99999-9999",
-    company: "Empresa Exemplo Ltda"
+    name: profile?.full_name || "Nome do Usuário",
+    email: profile?.email || "usuario@email.com",
+    phone: profile?.phone || "",
+    company: ""
   };
 
   const currentCard = {
@@ -56,7 +58,14 @@ export default function MinhaConta() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Mantenha seus dados atualizados</p>
+              <div className="space-y-2">
+                <p className="text-gray-600 mb-2">Mantenha seus dados atualizados</p>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">Nome:</span> {userData.name}</p>
+                  <p><span className="font-medium">E-mail:</span> {userData.email}</p>
+                  {userData.phone && <p><span className="font-medium">Telefone:</span> {userData.phone}</p>}
+                </div>
+              </div>
             </CardContent>
           </Card>
 

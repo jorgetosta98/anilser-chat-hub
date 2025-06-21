@@ -4,6 +4,7 @@ import { FormModal } from "@/components/modals/FormModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PasswordResetModalProps {
   isOpen: boolean;
@@ -44,8 +45,14 @@ export function PasswordResetModal({
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Atualizar senha no Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: formData.newPassword
+      });
+
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Senha atualizada",
@@ -58,10 +65,20 @@ export function PasswordResetModal({
         confirmPassword: ""
       });
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erro ao alterar senha:', error);
+      
+      let errorMessage = "Ocorreu um erro ao alterar sua senha. Tente novamente.";
+      
+      if (error.message?.includes('New password should be different')) {
+        errorMessage = "A nova senha deve ser diferente da atual.";
+      } else if (error.message?.includes('Password should be at least')) {
+        errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+      }
+      
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao alterar sua senha. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -89,6 +106,9 @@ export function PasswordResetModal({
             onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
             placeholder="Digite sua senha atual"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Por questões de segurança, a validação da senha atual está em desenvolvimento
+          </p>
         </div>
         
         <div>
