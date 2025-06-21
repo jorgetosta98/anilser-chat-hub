@@ -141,8 +141,8 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Safeboy</h1>
-            <p className="mt-2 text-gray-600">Plataforma de IA para Segurança</p>
+            <h1 className="text-3xl font-bold text-gray-900">ZapBase</h1>
+            <p className="mt-2 text-gray-600">Transforme suas conversas em conhecimento</p>
           </div>
 
           <Card className="w-full">

@@ -1,5 +1,5 @@
 
-import { Shield, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SidebarHeaderProps {
@@ -13,10 +13,11 @@ export function SidebarHeader({ isCollapsed, onToggleCollapse }: SidebarHeaderPr
       <div className="flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg text-sidebar-foreground">Safeboy</span>
+            <img 
+              src="/lovable-uploads/f742fb87-1258-499b-8a89-f5697f8bb611.png" 
+              alt="ZapBase Logo" 
+              className="h-8 w-auto"
+            />
           </div>
         )}
         <Button 
