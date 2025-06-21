@@ -9,6 +9,7 @@ export interface ReportsData {
   averageRating: number;
   tagUsageStats: Array<{ name: string; count: number }>;
   userDistribution: Array<{ user: string; percentage: number }>;
+  monthlyTimeSaved: Array<{ month: string; documents: number; consulting: number; research: number }>;
 }
 
 export function useReportsData() {
@@ -17,7 +18,8 @@ export function useReportsData() {
     totalInteractions: 0,
     averageRating: 0,
     tagUsageStats: [],
-    userDistribution: []
+    userDistribution: [],
+    monthlyTimeSaved: []
   });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -34,7 +36,7 @@ export function useReportsData() {
       // Buscar total de interações (mensagens do usuário)
       const { data: messages, error: messagesError } = await supabase
         .from("messages")
-        .select("id, used_tags, conversation_id")
+        .select("id, used_tags, conversation_id, created_at")
         .eq("is_user", true);
 
       if (messagesError) throw messagesError;
@@ -71,6 +73,9 @@ export function useReportsData() {
       // Calcular tempo poupado (estimativa baseada no número de interações)
       const estimatedTimeSavedPerInteraction = 0.5; // 30 minutos por consulta
       const totalTimeSaved = totalInteractions * estimatedTimeSavedPerInteraction;
+
+      // Processar dados mensais para o gráfico
+      const monthlyData = generateMonthlyData(messages || []);
 
       // Processar tags mais utilizadas
       const tagCounts: Record<string, number> = {};
@@ -109,7 +114,8 @@ export function useReportsData() {
         totalInteractions,
         averageRating,
         tagUsageStats,
-        userDistribution
+        userDistribution,
+        monthlyTimeSaved: monthlyData
       });
 
     } catch (error) {
@@ -122,6 +128,41 @@ export function useReportsData() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateMonthlyData = (messages: any[]) => {
+    const months = [
+      "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+      "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+    ];
+
+    // Agrupar mensagens por mês
+    const messagesByMonth: Record<string, number> = {};
+    
+    messages.forEach(message => {
+      if (message.created_at) {
+        const date = new Date(message.created_at);
+        const monthKey = months[date.getMonth()];
+        messagesByMonth[monthKey] = (messagesByMonth[monthKey] || 0) + 1;
+      }
+    });
+
+    // Gerar dados para todos os meses
+    return months.map(month => {
+      const totalMessages = messagesByMonth[month] || 0;
+      
+      // Distribuir as mensagens entre as categorias baseado em estimativas
+      const documents = Math.round(totalMessages * 0.4); // 40% para documentos
+      const consulting = Math.round(totalMessages * 0.3); // 30% para consultoria
+      const research = totalMessages - documents - consulting; // Resto para pesquisa
+      
+      return {
+        month,
+        documents: Math.max(0, documents),
+        consulting: Math.max(0, consulting),
+        research: Math.max(0, research)
+      };
+    });
   };
 
   return { data, isLoading, refetch: fetchReportsData };

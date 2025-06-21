@@ -1,24 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Clock, MessageSquare, Star, Users, Tag } from "lucide-react";
 import { useReportsData } from "@/hooks/useReportsData";
-
-const monthlyData = [
-  { month: "Jan", documents: 12, consulting: 8, research: 15 },
-  { month: "Fev", documents: 18, consulting: 12, research: 20 },
-  { month: "Mar", documents: 16, consulting: 10, research: 18 },
-  { month: "Abr", documents: 20, consulting: 15, research: 22 },
-  { month: "Mai", documents: 18, consulting: 12, research: 19 },
-  { month: "Jun", documents: 19, consulting: 14, research: 21 },
-  { month: "Jul", documents: 17, consulting: 11, research: 18 },
-  { month: "Ago", documents: 21, consulting: 16, research: 23 },
-  { month: "Set", documents: 20, consulting: 15, research: 22 },
-  { month: "Out", documents: 19, consulting: 13, research: 20 },
-  { month: "Nov", documents: 18, consulting: 12, research: 19 },
-  { month: "Dez", documents: 17, consulting: 11, research: 18 },
-];
 
 const pieColors = ["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4"];
 
@@ -80,7 +64,7 @@ export default function Relatorios() {
               
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
+                  <BarChart data={reportsData.monthlyTimeSaved}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
