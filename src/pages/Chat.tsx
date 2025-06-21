@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { ChatWelcomeScreen } from "@/components/ChatWelcomeScreen";
 import { ChatInterface } from "@/components/ChatInterface";
 import { MessageInput } from "@/components/MessageInput";
-import { ConversationsList } from "@/components/ConversationsList";
 
 export default function Chat() {
   const { chatId } = useParams();
@@ -13,10 +12,7 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Conversations List */}
-      <ConversationsList />
-      
-      {/* Main Chat Area */}
+      {/* Main Chat Area - Full width now */}
       <div className="flex-1 flex flex-col">
         {isViewingChat ? (
           <>

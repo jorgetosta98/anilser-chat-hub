@@ -44,17 +44,38 @@ export function useMessages(conversationId: string | null) {
       if (error) throw error;
       return data as Message;
     },
-    onSuccess: () => {
+    onSuccess: async (newMessage) => {
       queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-      // Update conversation's updated_at timestamp
-      if (conversationId) {
-        supabase
-          .from('conversations')
-          .update({ updated_at: new Date().toISOString() })
-          .eq('id', conversationId)
-          .then(() => {
-            queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          });
+      
+      // If this is the first user message, update the conversation title
+      if (newMessage.is_user && conversationId) {
+        const currentMessages = messages || [];
+        const userMessages = currentMessages.filter(msg => msg.is_user);
+        
+        // If this is the first user message, update conversation title
+        if (userMessages.length === 0) {
+          const truncatedTitle = newMessage.content.length > 50 
+            ? newMessage.content.substring(0, 50) + '...'
+            : newMessage.content;
+            
+          await supabase
+            .from('conversations')
+            .update({ 
+              title: truncatedTitle,
+              updated_at: new Date().toISOString() 
+            })
+            .eq('id', conversationId);
+            
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        } else {
+          // Just update the timestamp for existing conversations
+          await supabase
+            .from('conversations')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', conversationId);
+            
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        }
       }
     },
   });
