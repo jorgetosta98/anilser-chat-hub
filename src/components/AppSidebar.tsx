@@ -1,3 +1,4 @@
+
 import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -10,11 +11,49 @@ const regularTopMenuItems = [{
   icon: Plus,
   path: "/",
   action: true
+}];
+
+// Lista dos últimos 10 chats
+const recentChats = [{
+  id: 1,
+  title: "Consulta sobre segurança",
+  date: "Hoje"
 }, {
-  title: "Chat",
-  icon: MessageSquare,
-  path: "/chat",
-  expandable: true
+  id: 2,
+  title: "Dúvidas sobre relatórios",  
+  date: "Ontem"
+}, {
+  id: 3,
+  title: "Configuração inicial",
+  date: "2 dias atrás"
+}, {
+  id: 4,
+  title: "Integração WhatsApp",
+  date: "3 dias atrás"
+}, {
+  id: 5,
+  title: "Problemas de conexão",
+  date: "4 dias atrás"
+}, {
+  id: 6,
+  title: "Análise de dados",
+  date: "5 dias atrás"
+}, {
+  id: 7,
+  title: "Configuração de alertas",
+  date: "6 dias atrás"
+}, {
+  id: 8,
+  title: "Backup de informações",
+  date: "1 semana atrás"
+}, {
+  id: 9,
+  title: "Suporte técnico",
+  date: "1 semana atrás"
+}, {
+  id: 10,
+  title: "Tutorial inicial",
+  date: "2 semanas atrás"
 }];
 
 const regularBottomMenuItems = [{
@@ -79,28 +118,8 @@ const adminBottomMenuItems = [{
   action: "logout"
 }];
 
-// Mock data for chat history - in a real app, this would come from your state management
-const chatHistory = [{
-  id: 1,
-  title: "Consulta sobre segurança",
-  date: "Hoje"
-}, {
-  id: 2,
-  title: "Dúvidas sobre relatórios",  
-  date: "Ontem"
-}, {
-  id: 3,
-  title: "Configuração inicial",
-  date: "2 dias atrás"
-}, {
-  id: 4,
-  title: "Integração WhatsApp",
-  date: "3 dias atrás"
-}];
-
 export function AppSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const location = useLocation();
   
   // Check if user is in admin area
@@ -150,12 +169,31 @@ export function AppSidebar() {
                 key={item.title}
                 item={item}
                 isCollapsed={isCollapsed}
-                isChatExpanded={isChatExpanded}
-                onChatExpandChange={setIsChatExpanded}
-                chatHistory={chatHistory}
               />
             ))}
           </div>
+
+          {/* Recent Chats List */}
+          {!isCollapsed && (
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-1">
+                <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-3">
+                  Conversas Recentes
+                </h3>
+                {recentChats.map(chat => (
+                  <SidebarMenuItem
+                    key={chat.id}
+                    item={{
+                      title: chat.title,
+                      icon: MessageSquare,
+                      path: `/chat/${chat.id}`
+                    }}
+                    isCollapsed={false}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bottom Menu Items */}
           <div className="flex-1 flex flex-col justify-end">
