@@ -1,19 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { DocumentFileUpload } from "./DocumentFileUpload";
 import { DocumentTagsInput } from "./DocumentTagsInput";
 import { DocumentFormFields } from "./DocumentFormFields";
-import { useDocumentFormValidation } from "@/hooks/useDocumentFormValidation";
-
-interface Category {
-  id: string;
-  name: string;
-  color: string;
-}
+import { useDocumentForm } from "@/hooks/useDocumentForm";
+import { useDocumentFormSubmission } from "./DocumentFormSubmission";
 
 interface DocumentFormData {
   id?: string;
@@ -37,193 +30,33 @@ interface DocumentFormModalProps {
 }
 
 export function DocumentFormModal({ isOpen, onClose, document, onSave }: DocumentFormModalProps) {
-  const [formData, setFormData] = useState<DocumentFormData>({
-    title: "",
-    content: "",
-    summary: "",
-    context: "",
-    category_id: "",
-    tags: [],
-    is_public: true,
-  });
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const { toast } = useToast();
-  const { validateForm } = useDocumentFormValidation();
+  const {
+    formData,
+    categories,
+    uploadedFile,
+    fetchCategories,
+    handleFileSelect,
+    handleFileRemove,
+    updateFormData,
+  } = useDocumentForm(document);
 
-  useEffect(() => {
-    if (document) {
-      setFormData({
-        id: document.id,
-        title: document.title || "",
-        content: document.content || "",
-        summary: document.summary || "",
-        context: document.context || "",
-        category_id: document.category_id || "",
-        tags: document.tags || [],
-        file_url: document.file_url,
-        file_type: document.file_type,
-        is_public: document.is_public ?? true,
-      });
-    } else {
-      setFormData({
-        title: "",
-        content: "",
-        summary: "",
-        context: "",
-        category_id: "",
-        tags: [],
-        is_public: true,
-      });
-    }
-    setUploadedFile(null);
-  }, [document]);
+  const {
+    handleSubmit,
+    isLoading,
+    isUploading,
+  } = useDocumentFormSubmission({
+    formData,
+    uploadedFile,
+    document,
+    onSave,
+    onClose
+  });
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
     }
   }, [isOpen]);
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('knowledge_categories')
-        .select('id, name, color')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as categorias.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleFileSelect = (file: File) => {
-    setUploadedFile(file);
-    setFormData(prev => ({
-      ...prev,
-      file: file,
-      file_type: file.type,
-      content: "" 
-    }));
-  };
-
-  const handleFileRemove = () => {
-    setUploadedFile(null);
-    setFormData(prev => ({
-      ...prev,
-      file: undefined,
-      file_type: undefined,
-      file_url: undefined
-    }));
-  };
-
-  const uploadFileToStorage = async (file: File): Promise<string> => {
-    const fileName = `${Date.now()}-${file.name}`;
-    
-    const { data, error } = await supabase.storage
-      .from('knowledge-documents')
-      .upload(fileName, file);
-
-    if (error) throw error;
-
-    const { data: urlData } = supabase.storage
-      .from('knowledge-documents')
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const isValid = validateForm({
-      title: formData.title,
-      content: formData.content,
-      hasFile: !!uploadedFile,
-      hasExistingFile: !!formData.file_url,
-    });
-
-    if (!isValid) return;
-
-    setIsLoading(true);
-
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      let fileUrl = formData.file_url;
-      let fileType = formData.file_type;
-
-      if (uploadedFile) {
-        setIsUploading(true);
-        fileUrl = await uploadFileToStorage(uploadedFile);
-        fileType = uploadedFile.type;
-      }
-
-      const documentData = {
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        summary: formData.summary.trim(),
-        context: formData.context.trim(),
-        category_id: formData.category_id || null,
-        tags: formData.tags,
-        file_url: fileUrl || null,
-        file_type: fileType || null,
-        is_public: formData.is_public,
-        author_id: user.id,
-      };
-
-      if (document?.id) {
-        const { error } = await supabase
-          .from('knowledge_documents')
-          .update(documentData)
-          .eq('id', document.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Documento atualizado",
-          description: "O documento foi atualizado com sucesso.",
-        });
-      } else {
-        const { error } = await supabase
-          .from('knowledge_documents')
-          .insert([documentData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Documento criado",
-          description: "O documento foi criado com sucesso.",
-        });
-      }
-
-      onSave(formData);
-      onClose();
-    } catch (error) {
-      console.error('Error saving document:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o documento.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setIsUploading(false);
-    }
-  };
 
   const hasUploadedFile = Boolean(uploadedFile || formData.file_url);
 
@@ -237,9 +70,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Grid de duas colunas para otimizar espaço */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Coluna esquerda */}
             <div className="space-y-3">
               <DocumentFormFields
                 title={formData.title}
@@ -250,16 +81,15 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
                 isPublic={formData.is_public}
                 categories={categories}
                 hasFile={hasUploadedFile}
-                onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
-                onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
-                onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
-                onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-                onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
+                onTitleChange={(value) => updateFormData({ title: value })}
+                onSummaryChange={(value) => updateFormData({ summary: value })}
+                onContentChange={(value) => updateFormData({ content: value })}
+                onContextChange={(value) => updateFormData({ context: value })}
+                onCategoryChange={(value) => updateFormData({ category_id: value })}
+                onPublicChange={(value) => updateFormData({ is_public: value })}
               />
             </div>
 
-            {/* Coluna direita */}
             <div className="space-y-3">
               <DocumentFileUpload
                 uploadedFile={uploadedFile}
@@ -270,12 +100,11 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
 
               <DocumentTagsInput
                 tags={formData.tags}
-                onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+                onTagsChange={(tags) => updateFormData({ tags })}
               />
             </div>
           </div>
 
-          {/* Rodapé com botões */}
           <div className="flex justify-end space-x-2 pt-3 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
