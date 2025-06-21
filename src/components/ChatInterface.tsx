@@ -44,9 +44,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
           {messages?.map((message) => (
             <ChatMessage
               key={message.id}
-              content={message.content}
-              isUser={message.is_user}
-              timestamp={message.created_at}
+              message={message}
             />
           ))}
         </div>

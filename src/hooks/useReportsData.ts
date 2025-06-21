@@ -47,13 +47,18 @@ export function useReportsData() {
 
       if (ratingsError) throw ratingsError;
 
-      // Buscar informações dos usuários para distribuição
-      const { data: profiles, error: profilesError } = await supabase
+      // Buscar conversas do usuário
+      const { data: conversations, error: conversationsError } = await supabase
         .from("conversations")
-        .select(`
-          user_id,
-          profiles:user_id (full_name)
-        `);
+        .select("id, user_id")
+        .eq("user_id", user.id);
+
+      if (conversationsError) throw conversationsError;
+
+      // Buscar perfis de usuários
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name");
 
       if (profilesError) throw profilesError;
 
@@ -82,10 +87,11 @@ export function useReportsData() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Processar distribuição de usuários
+      // Processar distribuição de usuários baseado nas conversas e perfis
       const userCounts: Record<string, number> = {};
-      profiles?.forEach(conv => {
-        const userName = conv.profiles?.full_name || 'Usuário Anônimo';
+      conversations?.forEach(conv => {
+        const profile = profiles?.find(p => p.id === conv.user_id);
+        const userName = profile?.full_name || 'Usuário Anônimo';
         userCounts[userName] = (userCounts[userName] || 0) + 1;
       });
 
