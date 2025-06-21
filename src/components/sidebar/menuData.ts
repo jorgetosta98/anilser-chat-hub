@@ -1,5 +1,5 @@
 
-import { Plus, BarChart3, Link, User, LogOut, FileText, Palette, Users, Settings, CreditCard } from "lucide-react";
+import { Plus, BarChart3, Link, User, LogOut, FileText, Users, Settings, CreditCard } from "lucide-react";
 
 export interface MenuItem {
   title: string;
@@ -30,10 +30,6 @@ export const regularBottomMenuItems: MenuItem[] = [{
   title: "Base de Conhecimento",
   icon: FileText,
   path: "/base-conhecimento"
-}, {
-  title: "Personalização",
-  icon: Palette,
-  path: "/personalizacao"
 }, {
   title: "Relatórios",
   icon: BarChart3,

@@ -243,6 +243,42 @@ export type Database = {
           },
         ]
       }
+      user_personalization: {
+        Row: {
+          color_name: string | null
+          created_at: string | null
+          id: string
+          is_dark_mode: boolean | null
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_dark_mode?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_dark_mode?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

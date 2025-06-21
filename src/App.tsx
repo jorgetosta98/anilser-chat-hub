@@ -12,7 +12,6 @@ import Relatorios from "./pages/Relatorios";
 import Conexoes from "./pages/Conexoes";
 import MinhaConta from "./pages/MinhaConta";
 import BaseConhecimento from "./pages/BaseConhecimento";
-import Personalizacao from "./pages/Personalizacao";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -73,13 +72,6 @@ const App = () => (
               <ProtectedRoute>
                 <AppLayout>
                   <BaseConhecimento />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/personalizacao" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Personalizacao />
                 </AppLayout>
               </ProtectedRoute>
             } />
