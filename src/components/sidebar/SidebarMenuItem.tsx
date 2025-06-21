@@ -1,14 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link as RouterLink, useLocation } from "react-router-dom";
-
-interface MenuItem {
-  title: string;
-  icon: any;
-  path: string;
-  action?: boolean | string;
-  danger?: boolean;
-}
+import { MenuItem } from "./menuData";
 
 interface SidebarMenuItemProps {
   item: MenuItem;
