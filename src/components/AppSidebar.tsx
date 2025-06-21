@@ -1,4 +1,3 @@
-
 import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -67,7 +66,7 @@ const adminBottomMenuItems = [{
 }, {
   title: "Minha Conta",
   icon: User,
-  path: "/minha-conta"
+  path: "/admin/minha-conta"
 }, {
   title: "Sair",
   icon: LogOut,
