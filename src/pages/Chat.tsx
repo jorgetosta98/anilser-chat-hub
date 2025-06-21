@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Mic, Paperclip, Send, Lightbulb, FileText, Volume2, ArrowUp } from "lucide-react";
 import { ChatMessage } from "@/components/ChatMessage";
 
@@ -81,17 +81,21 @@ export default function Chat() {
     return (
       <div className="flex-1 flex flex-col h-screen bg-gray-50">
         {/* Chat History Content */}
-        <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full">
-          <div className="space-y-4">
-            {chatMessages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                message={msg.message}
-                isUser={msg.isUser}
-                timestamp={msg.timestamp}
-              />
-            ))}
-          </div>
+        <div className="flex-1 relative">
+          <ScrollArea className="h-full">
+            <div className="p-6 max-w-4xl mx-auto w-full">
+              <div className="space-y-4">
+                {chatMessages.map((msg) => (
+                  <ChatMessage
+                    key={msg.id}
+                    message={msg.message}
+                    isUser={msg.isUser}
+                    timestamp={msg.timestamp}
+                  />
+                ))}
+              </div>
+            </div>
+          </ScrollArea>
         </div>
 
         {/* Message Input */}
