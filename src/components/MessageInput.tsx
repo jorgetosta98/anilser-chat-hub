@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Mic, Paperclip, Send, ArrowUp } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
 import { useAI } from "@/hooks/useAI";
+import { useConversations } from "@/hooks/useConversations";
+import { useNavigate } from "react-router-dom";
 
 interface MessageInputProps {
   conversationId: string | null;
@@ -15,11 +17,30 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
   const [message, setMessage] = useState("");
   const { addMessage, isAddingMessage, messages } = useMessages(conversationId);
   const { generateResponse, isGenerating } = useAI();
+  const { createConversation } = useConversations();
+  const navigate = useNavigate();
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !conversationId || isAddingMessage || isGenerating) return;
+    if (!message.trim() || isAddingMessage || isGenerating) return;
 
     const userMessage = message.trim();
+    let currentConversationId = conversationId;
+
+    // Se não há conversationId, criar uma nova conversa
+    if (!currentConversationId) {
+      const newConversation = await createConversation('Nova Conversa');
+      if (newConversation) {
+        currentConversationId = newConversation.id;
+        navigate(`/chat/${newConversation.id}`);
+        
+        // Aguardar um pouco para garantir que a navegação ocorreu
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } else {
+        console.error('Erro ao criar nova conversa');
+        return;
+      }
+    }
+
     setMessage("");
 
     // Add user message
@@ -55,7 +76,6 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
             variant="ghost" 
             size="icon" 
             className="text-primary"
-            disabled={!conversationId}
           >
             <Paperclip className="w-5 h-5" />
           </Button>
@@ -63,23 +83,22 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
             variant="ghost" 
             size="icon" 
             className="text-primary"
-            disabled={!conversationId}
           >
             <Mic className="w-5 h-5" />
           </Button>
           <div className="flex-1 relative">
             <Input
-              placeholder={conversationId ? "Digite sua pergunta sobre segurança do trabalho..." : "Clique em 'Iniciar Nova Conversa' para começar"}
+              placeholder="Digite sua pergunta sobre segurança do trabalho..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               className="pr-12 border-gray-300 focus:border-primary"
-              disabled={!conversationId || isLoading}
+              disabled={isLoading}
             />
             <Button 
               size="icon"
               onClick={handleSendMessage}
-              disabled={!message.trim() || !conversationId || isLoading}
+              disabled={!message.trim() || isLoading}
               className="absolute right-1 top-1 h-8 w-8 bg-primary hover:bg-primary-700 disabled:opacity-50"
             >
               {isViewingChat ? <ArrowUp className="w-4 h-4" /> : <Send className="w-4 h-4" />}
