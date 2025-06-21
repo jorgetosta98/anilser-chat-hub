@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -228,47 +229,54 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[85vh] p-4">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-lg">
             {document ? "Editar Documento" : "Novo Documento"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 space-y-4 overflow-y-auto pr-2">
-            <DocumentFormFields
-              title={formData.title}
-              summary={formData.summary}
-              content={formData.content}
-              context={formData.context}
-              categoryId={formData.category_id}
-              isPublic={formData.is_public}
-              categories={categories}
-              hasFile={hasUploadedFile}
-              onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
-              onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
-              onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-              onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
-              onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-              onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
-            />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Grid de duas colunas para otimizar espaço */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Coluna esquerda */}
+            <div className="space-y-3">
+              <DocumentFormFields
+                title={formData.title}
+                summary={formData.summary}
+                content={formData.content}
+                context={formData.context}
+                categoryId={formData.category_id}
+                isPublic={formData.is_public}
+                categories={categories}
+                hasFile={hasUploadedFile}
+                onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+                onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
+                onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
+                onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
+              />
+            </div>
 
-            <DocumentFileUpload
-              uploadedFile={uploadedFile}
-              existingFileUrl={formData.file_url}
-              onFileSelect={handleFileSelect}
-              onFileRemove={handleFileRemove}
-            />
+            {/* Coluna direita */}
+            <div className="space-y-3">
+              <DocumentFileUpload
+                uploadedFile={uploadedFile}
+                existingFileUrl={formData.file_url}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+              />
 
-            <DocumentTagsInput
-              tags={formData.tags}
-              onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
-            />
+              <DocumentTagsInput
+                tags={formData.tags}
+                onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+              />
+            </div>
           </div>
 
           {/* Rodapé com botões */}
-          <div className="flex justify-end space-x-2 pt-4 border-t flex-shrink-0">
+          <div className="flex justify-end space-x-2 pt-3 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

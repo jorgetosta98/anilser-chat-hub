@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,7 +53,7 @@ export function DocumentFormFields({
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Digite o título do documento"
           required
-          className="mt-1"
+          className="mt-1 h-8"
         />
       </div>
 
@@ -63,14 +64,14 @@ export function DocumentFormFields({
           value={summary}
           onChange={(e) => onSummaryChange(e.target.value)}
           placeholder="Breve resumo"
-          className="mt-1"
+          className="mt-1 h-8"
         />
       </div>
 
       <div>
         <Label htmlFor="category" className="text-sm font-medium">Categoria</Label>
         <Select value={categoryId} onValueChange={onCategoryChange}>
-          <SelectTrigger className="mt-1">
+          <SelectTrigger className="mt-1 h-8">
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
@@ -91,7 +92,7 @@ export function DocumentFormFields({
             value={context}
             onChange={(e) => onContextChange(e.target.value)}
             placeholder="Adicione contexto adicional sobre o documento (opcional)"
-            className="min-h-[80px] mt-1"
+            className="min-h-[60px] max-h-[120px] mt-1 text-sm"
           />
           <p className="text-xs text-gray-500 mt-1">
             O conteúdo será extraído automaticamente do arquivo.
@@ -105,13 +106,13 @@ export function DocumentFormFields({
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
             placeholder="Digite o conteúdo do documento"
-            className="min-h-[120px] mt-1"
+            className="min-h-[100px] max-h-[200px] mt-1 text-sm"
             required
           />
         </div>
       )}
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 pt-2">
         <input
           type="checkbox"
           id="is_public"

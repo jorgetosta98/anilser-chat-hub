@@ -64,13 +64,13 @@ export function DocumentFileUpload({
 
   return (
     <div>
-      <Label>Upload de Documento</Label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-3">
+      <Label className="text-sm font-medium">Upload de Documento</Label>
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 mt-1">
         {hasUploadedFile ? (
           <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
             <div className="flex items-center space-x-2">
               <FileText className="w-4 h-4 text-blue-500" />
-              <span className="text-sm">
+              <span className="text-xs">
                 {uploadedFile?.name || (existingFileUrl ? "Arquivo já carregado" : "")}
               </span>
             </div>
@@ -79,14 +79,15 @@ export function DocumentFileUpload({
               variant="ghost"
               size="sm"
               onClick={onFileRemove}
+              className="h-6 w-6 p-0"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3 h-3" />
             </Button>
           </div>
         ) : (
           <div className="text-center py-2">
-            <Upload className="w-6 h-6 mx-auto text-gray-400 mb-2" />
-            <p className="text-sm text-gray-600 mb-1">
+            <Upload className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+            <p className="text-xs text-gray-600 mb-1">
               Arraste um arquivo aqui ou clique para selecionar
             </p>
             <p className="text-xs text-gray-500 mb-2">
@@ -104,6 +105,7 @@ export function DocumentFileUpload({
               variant="outline"
               size="sm"
               onClick={() => document.getElementById('file-upload')?.click()}
+              className="h-7 text-xs"
             >
               Selecionar Arquivo
             </Button>
