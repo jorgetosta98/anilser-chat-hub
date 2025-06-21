@@ -11,6 +11,7 @@ import Conexoes from "./pages/Conexoes";
 import MinhaConta from "./pages/MinhaConta";
 import BaseConhecimento from "./pages/BaseConhecimento";
 import Personalizacao from "./pages/Personalizacao";
+import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -73,6 +74,11 @@ const App = () => (
           <Route path="/minha-conta" element={
             <AppLayout>
               <MinhaConta />
+            </AppLayout>
+          } />
+          <Route path="/admin" element={
+            <AppLayout>
+              <Admin />
             </AppLayout>
           } />
           <Route path="*" element={<NotFound />} />

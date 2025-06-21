@@ -1,5 +1,4 @@
-
-import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette } from "lucide-react";
+import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield } from "lucide-react";
 import { useState } from "react";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarMenuItem } from "./sidebar/SidebarMenuItem";
@@ -33,6 +32,10 @@ const bottomMenuItems = [{
   title: "Relatórios",
   icon: BarChart3,
   path: "/relatorios"
+}, {
+  title: "Admin",
+  icon: Shield,
+  path: "/admin"
 }, {
   title: "Minha Conta",
   icon: User,
