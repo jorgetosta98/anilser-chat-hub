@@ -12,12 +12,12 @@ export interface KnowledgeBase {
 export const KNOWLEDGE_BASES: KnowledgeBase[] = [
   {
     id: 'normal',
-    name: 'Base de Conhecimento Normal',
+    name: 'Documentos e informações',
     description: 'Documentos e informações gerais sobre segurança do trabalho'
   },
   {
     id: 'whatsapp',
-    name: 'Base WhatsApp',
+    name: 'WhatsApp',
     description: 'Conversas e histórico do WhatsApp'
   }
 ];
