@@ -1,10 +1,10 @@
-
 import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarMenuItem } from "./sidebar/SidebarMenuItem";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const regularTopMenuItems = [{
   title: "Nova Conversa",
@@ -173,30 +173,32 @@ export function AppSidebar() {
             ))}
           </div>
 
-          {/* Recent Chats List */}
+          {/* Recent Chats List - Fixed height, no scroll */}
           {!isCollapsed && (
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-1">
+            <div className="flex-1 min-h-0">
+              <div className="p-4 h-full flex flex-col">
                 <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-3">
                   Conversas Recentes
                 </h3>
-                {recentChats.map(chat => (
-                  <SidebarMenuItem
-                    key={chat.id}
-                    item={{
-                      title: chat.title,
-                      icon: MessageSquare,
-                      path: `/chat/${chat.id}`
-                    }}
-                    isCollapsed={false}
-                  />
-                ))}
+                <div className="space-y-1 flex-1">
+                  {recentChats.slice(0, 10).map(chat => (
+                    <SidebarMenuItem
+                      key={chat.id}
+                      item={{
+                        title: chat.title,
+                        icon: MessageSquare,
+                        path: `/chat/${chat.id}`
+                      }}
+                      isCollapsed={false}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {/* Bottom Menu Items */}
-          <div className="flex-1 flex flex-col justify-end">
+          <div className="mt-auto">
             <div className="p-4 space-y-2 border-t border-sidebar-border">
               {regularBottomMenuItems.map(item => (
                 <SidebarMenuItem
