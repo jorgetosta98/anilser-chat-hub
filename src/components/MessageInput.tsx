@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mic, Paperclip, Send, ArrowUp } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
+import { useAI } from "@/hooks/useAI";
 
 interface MessageInputProps {
   conversationId: string | null;
@@ -12,10 +13,11 @@ interface MessageInputProps {
 
 export function MessageInput({ conversationId, isViewingChat = false }: MessageInputProps) {
   const [message, setMessage] = useState("");
-  const { addMessage, isAddingMessage } = useMessages(conversationId);
+  const { addMessage, isAddingMessage, messages } = useMessages(conversationId);
+  const { generateResponse, isGenerating } = useAI();
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !conversationId || isAddingMessage) return;
+    if (!message.trim() || !conversationId || isAddingMessage || isGenerating) return;
 
     const userMessage = message.trim();
     setMessage("");
@@ -23,11 +25,17 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     // Add user message
     addMessage({ content: userMessage, isUser: true });
 
-    // Simulate AI response (in a real app, this would call your AI service)
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(userMessage);
+    // Generate AI response
+    try {
+      const aiResponse = await generateResponse(userMessage, messages);
       addMessage({ content: aiResponse, isUser: false });
-    }, 1000);
+    } catch (error) {
+      console.error('Erro ao gerar resposta:', error);
+      addMessage({ 
+        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.", 
+        isUser: false 
+      });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -37,20 +45,7 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     }
   };
 
-  // Simple AI response generator (replace with actual AI integration)
-  const generateAIResponse = (userMessage: string): string => {
-    const responses = [
-      "Entendo sua questão sobre segurança do trabalho. Vou te ajudar com isso.",
-      "Essa é uma pergunta importante sobre segurança ocupacional. Deixe-me fornecer algumas orientações.",
-      "Com base na sua pergunta, posso te orientar sobre as melhores práticas de segurança.",
-      "Vou te ajudar com essa questão de segurança. É importante seguir as normas regulamentadoras.",
-      "Excelente pergunta! A segurança no trabalho é fundamental. Aqui estão algumas recomendações."
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)] + 
-           "\n\nSua mensagem: \"" + userMessage + "\"\n\n" +
-           "Esta é uma resposta simulada. Em um ambiente real, aqui estaria a resposta do assistente de IA especializado em segurança do trabalho.";
-  };
+  const isLoading = isAddingMessage || isGenerating;
 
   return (
     <div className="border-t bg-white p-4">
@@ -74,23 +69,28 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
           </Button>
           <div className="flex-1 relative">
             <Input
-              placeholder={conversationId ? "Digite sua mensagem ou comando" : "Clique em 'Iniciar Nova Conversa' para começar"}
+              placeholder={conversationId ? "Digite sua pergunta sobre segurança do trabalho..." : "Clique em 'Iniciar Nova Conversa' para começar"}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               className="pr-12 border-gray-300 focus:border-primary"
-              disabled={!conversationId || isAddingMessage}
+              disabled={!conversationId || isLoading}
             />
             <Button 
               size="icon"
               onClick={handleSendMessage}
-              disabled={!message.trim() || !conversationId || isAddingMessage}
+              disabled={!message.trim() || !conversationId || isLoading}
               className="absolute right-1 top-1 h-8 w-8 bg-primary hover:bg-primary-700 disabled:opacity-50"
             >
               {isViewingChat ? <ArrowUp className="w-4 h-4" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
         </div>
+        {isLoading && (
+          <div className="text-center mt-2 text-sm text-gray-500">
+            {isGenerating ? "SafeBoy está pensando..." : "Enviando mensagem..."}
+          </div>
+        )}
       </div>
     </div>
   );
