@@ -1,9 +1,37 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, CreditCard, User, Lock, FileText } from "lucide-react";
+import { useState } from "react";
+import { UserProfileModal } from "@/components/client/modals/UserProfileModal";
+import { PasswordResetModal } from "@/components/client/modals/PasswordResetModal";
+import { PlanChangeModal } from "@/components/client/modals/PlanChangeModal";
+import { PaymentMethodModal } from "@/components/client/modals/PaymentMethodModal";
+import { CancelSubscriptionModal } from "@/components/client/modals/CancelSubscriptionModal";
 
 export default function MinhaConta() {
+  const [userProfileModalOpen, setUserProfileModalOpen] = useState(false);
+  const [passwordResetModalOpen, setPasswordResetModalOpen] = useState(false);
+  const [planChangeModalOpen, setPlanChangeModalOpen] = useState(false);
+  const [paymentMethodModalOpen, setPaymentMethodModalOpen] = useState(false);
+  const [cancelSubscriptionModalOpen, setCancelSubscriptionModalOpen] = useState(false);
+
+  // Mock user data
+  const userData = {
+    name: "João Silva",
+    email: "joao.silva@email.com",
+    phone: "(11) 99999-9999",
+    company: "Empresa Exemplo Ltda"
+  };
+
+  const currentCard = {
+    last4: "7890",
+    brand: "Visa",
+    expiryMonth: "12",
+    expiryYear: "2027"
+  };
+
   return (
     <div className="flex-1 p-6" style={{ backgroundColor: '#F9FAFB' }}>
       <div className="max-w-4xl mx-auto">
@@ -18,7 +46,13 @@ export default function MinhaConta() {
                   <User className="w-5 h-5 text-primary" />
                   <span>Meus Dados</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setUserProfileModalOpen(true)}
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -38,7 +72,11 @@ export default function MinhaConta() {
               <p className="text-gray-600">
                 Esqueceu seus dados de acesso? Defina uma nova senha e mantenha a sua conta segura.
               </p>
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary-50">
+              <Button 
+                variant="outline" 
+                className="border-primary text-primary hover:bg-primary-50"
+                onClick={() => setPasswordResetModalOpen(true)}
+              >
                 Redefinir Senha
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
@@ -66,7 +104,11 @@ export default function MinhaConta() {
                 <p className="text-sm text-gray-600 mb-2">Cartão de crédito</p>
                 <div className="flex items-center justify-between">
                   <p className="font-mono text-sm">**** **** **** 7890</p>
-                  <Button variant="link" className="text-primary p-0 h-auto">
+                  <Button 
+                    variant="link" 
+                    className="text-primary p-0 h-auto"
+                    onClick={() => setPaymentMethodModalOpen(true)}
+                  >
                     Alterar cartão de crédito
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
@@ -74,10 +116,18 @@ export default function MinhaConta() {
               </div>
 
               <div className="flex space-x-3 pt-4">
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary-50">
+                <Button 
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary-50"
+                  onClick={() => setPlanChangeModalOpen(true)}
+                >
                   Alterar Plano
                 </Button>
-                <Button variant="outline" className="border-destructive text-destructive hover:bg-red-50">
+                <Button 
+                  variant="outline" 
+                  className="border-destructive text-destructive hover:bg-red-50"
+                  onClick={() => setCancelSubscriptionModalOpen(true)}
+                >
                   Cancelar Assinatura
                 </Button>
               </div>
@@ -85,6 +135,36 @@ export default function MinhaConta() {
           </Card>
         </div>
       </div>
+
+      {/* Modals */}
+      <UserProfileModal
+        isOpen={userProfileModalOpen}
+        onClose={() => setUserProfileModalOpen(false)}
+        userData={userData}
+      />
+
+      <PasswordResetModal
+        isOpen={passwordResetModalOpen}
+        onClose={() => setPasswordResetModalOpen(false)}
+      />
+
+      <PlanChangeModal
+        isOpen={planChangeModalOpen}
+        onClose={() => setPlanChangeModalOpen(false)}
+        currentPlan="annual"
+      />
+
+      <PaymentMethodModal
+        isOpen={paymentMethodModalOpen}
+        onClose={() => setPaymentMethodModalOpen(false)}
+        currentCard={currentCard}
+      />
+
+      <CancelSubscriptionModal
+        isOpen={cancelSubscriptionModalOpen}
+        onClose={() => setCancelSubscriptionModalOpen(false)}
+        planName="Safeboy Assinatura Anual"
+      />
     </div>
   );
 }
