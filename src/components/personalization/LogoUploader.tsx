@@ -27,7 +27,6 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
       return;
     }
 
-    // Verificar tipo de arquivo
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Tipo de arquivo inválido",
@@ -57,7 +56,6 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
       });
     } finally {
       setUploading(false);
-      // Limpar o input
       event.target.value = '';
     }
   };

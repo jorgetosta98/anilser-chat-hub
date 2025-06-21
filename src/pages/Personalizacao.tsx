@@ -2,11 +2,11 @@
 import { Upload, Palette, Sun, Settings, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import { usePersonalization } from "@/hooks/usePersonalization";
 import { LogoUploader } from "@/components/personalization/LogoUploader";
 import { ThemeSettings } from "@/components/personalization/ThemeSettings";
 import { ColorSelection } from "@/components/personalization/ColorSelection";
-import { Loader2 } from "lucide-react";
 
 export default function Personalizacao() {
   const { settings, loading, updateSettings, saveSettings, resetToDefault, uploadLogo } = usePersonalization();
