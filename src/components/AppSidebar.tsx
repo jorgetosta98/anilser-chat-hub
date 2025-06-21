@@ -100,7 +100,6 @@ export function AppSidebar() {
                       variant="ghost"
                       className="w-full justify-start text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary px-2 py-1 h-8"
                     >
-                      <MessageSquare className="w-3 h-3 mr-2 opacity-70" />
                       <span className="truncate">{chat.title}</span>
                     </Button>
                   </RouterLink>
