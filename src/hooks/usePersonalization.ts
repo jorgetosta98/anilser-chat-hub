@@ -23,14 +23,24 @@ export function usePersonalization() {
   // Load user settings on mount
   useEffect(() => {
     const loadSettings = async () => {
-      if (user) {
-        const userSettings = await loadUserSettings(user.id);
-        setSettings(userSettings);
-      } else {
-        const localSettings = loadLocalSettings();
-        setSettings(localSettings);
+      try {
+        console.log('Carregando configurações...', { user: user ? user.id : 'não logado' });
+        
+        if (user) {
+          const userSettings = await loadUserSettings(user.id);
+          console.log('Configurações do usuário carregadas:', userSettings);
+          setSettings(userSettings);
+        } else {
+          const localSettings = loadLocalSettings();
+          console.log('Configurações locais carregadas:', localSettings);
+          setSettings(localSettings);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+        setSettings(defaultSettings);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadSettings();
@@ -38,11 +48,14 @@ export function usePersonalization() {
 
   // Apply settings whenever they change
   useEffect(() => {
+    console.log('Aplicando configurações de tema:', settings);
     applyThemeSettings(settings);
   }, [settings]);
 
   const updateSettings = (newSettings: Partial<PersonalizationSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
+    console.log('Atualizando configurações:', { old: settings, new: updatedSettings });
+    
     setSettings(updatedSettings);
     
     // Save locally for immediate response when not logged in
@@ -61,31 +74,15 @@ export function usePersonalization() {
       return null;
     }
 
-    // Validate file size
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "O logo deve ter no máximo 2MB.",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Tipo de arquivo inválido",
-        description: "Por favor, selecione uma imagem (PNG, JPG, etc.).",
-        variant: "destructive",
-      });
-      return null;
-    }
+    console.log('Iniciando processo de upload...', { fileSize: file.size, fileType: file.type });
 
     try {
       const logoUrl = await uploadLogoFile(file, user.id);
       if (logoUrl) {
+        console.log('Upload concluído com sucesso:', logoUrl);
         return logoUrl;
       } else {
+        console.error('Upload falhou - URL nula');
         toast({
           title: "Erro no upload",
           description: "Não foi possível fazer upload da logo.",
@@ -105,6 +102,8 @@ export function usePersonalization() {
   };
 
   const saveSettings = async () => {
+    console.log('Salvando configurações...', settings);
+    
     if (!user) {
       saveLocalSettings(settings);
       toast({
@@ -116,6 +115,7 @@ export function usePersonalization() {
 
     try {
       await saveUserSettings(user.id, settings);
+      console.log('Configurações salvas no servidor com sucesso');
       toast({
         title: "Configurações salvas!",
         description: "Suas preferências de personalização foram aplicadas com sucesso.",
@@ -131,6 +131,8 @@ export function usePersonalization() {
   };
 
   const resetToDefault = async () => {
+    console.log('Resetando para configurações padrão...');
+    
     if (user) {
       try {
         await deleteUserSettings(user.id);

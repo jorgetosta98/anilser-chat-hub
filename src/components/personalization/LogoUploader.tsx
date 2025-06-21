@@ -18,6 +18,8 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('Arquivo selecionado:', { name: file.name, size: file.size, type: file.type });
+
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "Arquivo muito grande",
@@ -39,8 +41,10 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
     setUploading(true);
     
     try {
+      console.log('Iniciando upload...');
       const logoUrl = await uploadLogo(file);
       if (logoUrl) {
+        console.log('Logo uploaded successfully:', logoUrl);
         onLogoChange(logoUrl);
         toast({
           title: "Logo atualizado!",
@@ -61,6 +65,7 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
   };
 
   const handleRemoveLogo = () => {
+    console.log('Removendo logo...');
     onLogoChange(null);
     toast({
       title: "Logo removido",
@@ -78,8 +83,11 @@ export function LogoUploader({ currentLogo, onLogoChange, uploadLogo }: LogoUplo
               alt="Logo customizado"
               className="max-h-24 mx-auto rounded"
               onError={(e) => {
-                console.error('Erro ao carregar imagem:', e);
+                console.error('Erro ao carregar imagem do logo:', e);
                 e.currentTarget.src = '/placeholder.svg';
+              }}
+              onLoad={() => {
+                console.log('Logo carregado com sucesso:', currentLogo);
               }}
             />
             <p className="text-sm text-gray-600 dark:text-gray-400">Logo atual</p>

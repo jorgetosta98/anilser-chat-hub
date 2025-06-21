@@ -97,7 +97,26 @@
 
   body {
     @apply bg-background text-foreground;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Aplicar cores personalizadas aos elementos principais */
+  .bg-primary {
+    background-color: hsl(var(--primary)) !important;
+  }
+
+  /* Quando variáveis customizadas estão definidas, usar essas */
+  [style*="--primary-color"] .bg-primary {
+    background-color: var(--primary-color) !important;
+  }
+
+  [style*="--secondary-color"] .border-secondary {
+    border-color: var(--secondary-color) !important;
+  }
+
+  /* Aplicar transições suaves para mudanças de tema */
+  button, .card, .border {
+    transition: all 0.3s ease;
   }
 }
 
@@ -125,5 +144,10 @@
   
   .border-secondary-custom {
     border-color: var(--secondary-color);
+  }
+
+  /* Utilitários para transições suaves */
+  .theme-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }
