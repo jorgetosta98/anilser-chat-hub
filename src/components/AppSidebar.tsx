@@ -1,10 +1,12 @@
-import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield } from "lucide-react";
+
+import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { SidebarMenuItem } from "./sidebar/SidebarMenuItem";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 
-const topMenuItems = [{
+const regularTopMenuItems = [{
   title: "Nova Conversa",
   icon: Plus,
   path: "/",
@@ -16,7 +18,7 @@ const topMenuItems = [{
   expandable: true
 }];
 
-const bottomMenuItems = [{
+const regularBottomMenuItems = [{
   title: "Conexões",
   icon: Link,
   path: "/conexoes"
@@ -48,6 +50,34 @@ const bottomMenuItems = [{
   action: "logout"
 }];
 
+const adminMenuItems = [{
+  title: "Dashboard",
+  icon: BarChart3,
+  path: "/admin"
+}, {
+  title: "Usuários",
+  icon: Users,
+  path: "/admin/users"
+}, {
+  title: "Conversas",
+  icon: MessageSquare,
+  path: "/admin/conversations"
+}, {
+  title: "Configurações",
+  icon: Settings,
+  path: "/admin/settings"
+}, {
+  title: "Minha Conta",
+  icon: User,
+  path: "/minha-conta"
+}, {
+  title: "Sair",
+  icon: LogOut,
+  path: "/login",
+  danger: true,
+  action: "logout"
+}];
+
 // Mock data for chat history - in a real app, this would come from your state management
 const chatHistory = [{
   id: 1,
@@ -55,7 +85,7 @@ const chatHistory = [{
   date: "Hoje"
 }, {
   id: 2,
-  title: "Dúvidas sobre relatórios",
+  title: "Dúvidas sobre relatórios",  
   date: "Ontem"
 }, {
   id: 3,
@@ -70,6 +100,10 @@ const chatHistory = [{
 export function AppSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const location = useLocation();
+  
+  // Check if user is in admin area
+  const isAdminArea = location.pathname.startsWith('/admin');
 
   return (
     <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}>
@@ -78,34 +112,52 @@ export function AppSidebar() {
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)} 
       />
 
-      {/* Top Menu Items */}
-      <div className="p-4 space-y-2 border-b border-sidebar-border">
-        {topMenuItems.map(item => (
-          <SidebarMenuItem
-            key={item.title}
-            item={item}
-            isCollapsed={isCollapsed}
-            isChatExpanded={isChatExpanded}
-            onChatExpandChange={setIsChatExpanded}
-            chatHistory={chatHistory}
-          />
-        ))}
-      </div>
-
-      {/* Bottom Menu Items */}
-      <div className="flex-1 flex flex-col justify-end">
-        <div className="p-4 space-y-2 border-t border-sidebar-border">
-          {bottomMenuItems.map(item => (
-            <SidebarMenuItem
-              key={item.title}
-              item={item}
-              isCollapsed={isCollapsed}
-            />
-          ))}
+      {isAdminArea ? (
+        // Admin Menu
+        <div className="flex-1 flex flex-col">
+          <div className="p-4 space-y-2">
+            {adminMenuItems.map(item => (
+              <SidebarMenuItem
+                key={item.title}
+                item={item}
+                isCollapsed={isCollapsed}
+              />
+            ))}
+          </div>
         </div>
+      ) : (
+        // Regular User Menu
+        <>
+          {/* Top Menu Items */}
+          <div className="p-4 space-y-2 border-b border-sidebar-border">
+            {regularTopMenuItems.map(item => (
+              <SidebarMenuItem
+                key={item.title}
+                item={item}
+                isCollapsed={isCollapsed}
+                isChatExpanded={isChatExpanded}
+                onChatExpandChange={setIsChatExpanded}
+                chatHistory={chatHistory}
+              />
+            ))}
+          </div>
 
-        <SidebarFooter isCollapsed={isCollapsed} />
-      </div>
+          {/* Bottom Menu Items */}
+          <div className="flex-1 flex flex-col justify-end">
+            <div className="p-4 space-y-2 border-t border-sidebar-border">
+              {regularBottomMenuItems.map(item => (
+                <SidebarMenuItem
+                  key={item.title}
+                  item={item}
+                  isCollapsed={isCollapsed}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      <SidebarFooter isCollapsed={isCollapsed} />
     </div>
   );
 }

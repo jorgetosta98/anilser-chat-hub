@@ -81,6 +81,21 @@ const App = () => (
               <Admin />
             </AppLayout>
           } />
+          <Route path="/admin/users" element={
+            <AppLayout>
+              <Admin />
+            </AppLayout>
+          } />
+          <Route path="/admin/conversations" element={
+            <AppLayout>
+              <Admin />
+            </AppLayout>
+          } />
+          <Route path="/admin/settings" element={
+            <AppLayout>
+              <Admin />
+            </AppLayout>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
