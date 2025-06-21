@@ -1,12 +1,25 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { AppSidebar } from "@/components/AppSidebar";
+import Chat from "./pages/Chat";
+import Relatorios from "./pages/Relatorios";
+import Conexoes from "./pages/Conexoes";
+import MinhaConta from "./pages/MinhaConta";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const AppLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex w-full min-h-screen">
+    <AppSidebar />
+    {children}
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -15,8 +28,32 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
+            <AppLayout>
+              <Chat />
+            </AppLayout>
+          } />
+          <Route path="/chat" element={
+            <AppLayout>
+              <Chat />
+            </AppLayout>
+          } />
+          <Route path="/relatorios" element={
+            <AppLayout>
+              <Relatorios />
+            </AppLayout>
+          } />
+          <Route path="/conexoes" element={
+            <AppLayout>
+              <Conexoes />
+            </AppLayout>
+          } />
+          <Route path="/minha-conta" element={
+            <AppLayout>
+              <MinhaConta />
+            </AppLayout>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
