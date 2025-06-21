@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { useMessages } from "@/hooks/useMessages";
-import { ChatRatingModal } from "./modals/ChatRatingModal";
+import { QuickFeedbackModal } from "./modals/QuickFeedbackModal";
 
 interface ChatInterfaceProps {
   conversationId: string;
@@ -37,6 +37,10 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     );
   }
 
+  const lastMessage = messages && messages.length > 0 
+    ? messages[messages.length - 1]?.content 
+    : undefined;
+
   return (
     <>
       <div className="flex-1 overflow-auto">
@@ -50,10 +54,11 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         </div>
       </div>
 
-      <ChatRatingModal
+      <QuickFeedbackModal
         isOpen={showRatingModal}
         onClose={() => setShowRatingModal(false)}
         conversationId={conversationId}
+        lastMessage={lastMessage}
       />
     </>
   );

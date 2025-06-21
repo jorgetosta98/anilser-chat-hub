@@ -14,7 +14,6 @@ export function ChatWelcomeScreen() {
   const { createConversation } = useConversations();
   const navigate = useNavigate();
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [pendingConversationId, setPendingConversationId] = useState<string | null>(null);
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Usuário';
 

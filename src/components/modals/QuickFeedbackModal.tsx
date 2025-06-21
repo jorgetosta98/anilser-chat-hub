@@ -24,7 +24,7 @@ export function QuickFeedbackModal({
 
   const getPersonalizedQuestion = (message?: string) => {
     if (!message || message.length < 10) {
-      return "Essa conversa foi produtiva?";
+      return "Como podemos melhorar sua experiência?";
     }
     
     // Extrair palavras-chave da mensagem para personalizar
@@ -44,7 +44,12 @@ export function QuickFeedbackModal({
   };
 
   const handleFeedback = async (isPositive: boolean) => {
+    // Se não há conversationId, apenas fechamos o modal sem salvar
     if (!conversationId) {
+      toast({
+        title: "Obrigado pelo feedback!",
+        description: "Sua opinião é importante para nós."
+      });
       onClose();
       return;
     }
@@ -123,6 +128,7 @@ export function QuickFeedbackModal({
             variant="outline" 
             onClick={onClose}
             className="text-sm"
+            disabled={isSubmitting}
           >
             Pular avaliação
           </Button>
