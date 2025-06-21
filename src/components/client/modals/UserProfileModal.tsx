@@ -39,7 +39,7 @@ export function UserProfileModal({
         name: userData?.name || profile?.full_name || "",
         email: userData?.email || profile?.email || "",
         phone: userData?.phone || profile?.phone || "",
-        company: userData?.company || ""
+        company: userData?.company || profile?.company || ""
       });
     }
   }, [isOpen, userData, profile]);
@@ -52,6 +52,7 @@ export function UserProfileModal({
       const { error } = await updateProfile({
         full_name: formData.name,
         phone: formData.phone,
+        company: formData.company,
         // Nota: email não pode ser alterado diretamente via profiles
         // seria necessário usar supabase.auth.updateUser para isso
       });
@@ -128,19 +129,14 @@ export function UserProfileModal({
         </div>
         
         <div>
-          <Label htmlFor="company">Empresa (opcional)</Label>
+          <Label htmlFor="company">Empresa</Label>
           <Input
             id="company"
             type="text"
             value={formData.company}
             onChange={(e) => setFormData({...formData, company: e.target.value})}
             placeholder="Nome da empresa"
-            disabled
-            className="bg-gray-100"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Campo em desenvolvimento
-          </p>
         </div>
       </div>
     </FormModal>

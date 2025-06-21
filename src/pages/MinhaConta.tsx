@@ -24,7 +24,7 @@ export default function MinhaConta() {
     name: profile?.full_name || "Nome do Usuário",
     email: profile?.email || "usuario@email.com",
     phone: profile?.phone || "",
-    company: ""
+    company: profile?.company || ""
   };
 
   const currentCard = {
@@ -64,6 +64,7 @@ export default function MinhaConta() {
                   <p><span className="font-medium">Nome:</span> {userData.name}</p>
                   <p><span className="font-medium">E-mail:</span> {userData.email}</p>
                   {userData.phone && <p><span className="font-medium">Telefone:</span> {userData.phone}</p>}
+                  {userData.company && <p><span className="font-medium">Empresa:</span> {userData.company}</p>}
                 </div>
               </div>
             </CardContent>
