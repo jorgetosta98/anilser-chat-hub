@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -38,17 +37,20 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Custom personalization variables */
-    --primary-color: #0d9488;
-    --secondary-color: #14b8a6;
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -97,80 +99,5 @@
 
   body {
     @apply bg-background text-foreground;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  /* Aplicar cores personalizadas aos elementos principais */
-  .bg-primary, button:not(.bg-destructive):not(.bg-secondary):not(.bg-outline):not(.bg-ghost):not(.bg-link) {
-    background-color: hsl(var(--primary)) !important;
-  }
-
-  /* Aplicar cores customizadas quando definidas */
-  [style*="--primary-color"] .bg-primary,
-  [style*="--primary-color"] button:not(.bg-destructive):not(.bg-secondary):not(.bg-outline):not(.bg-ghost):not(.bg-link) {
-    background-color: var(--primary-color) !important;
-  }
-
-  [style*="--secondary-color"] .border-secondary,
-  [style*="--secondary-color"] .bg-secondary {
-    border-color: var(--secondary-color) !important;
-    background-color: var(--secondary-color) !important;
-  }
-
-  /* Sidebar personalization */
-  [style*="--primary-color"] .bg-sidebar-primary {
-    background-color: var(--primary-color) !important;
-  }
-
-  [style*="--secondary-color"] .bg-sidebar-accent {
-    background-color: var(--secondary-color) !important;
-  }
-
-  /* Aplicar transições suaves para mudanças de tema */
-  button, .card, .border, [data-sidebar] {
-    transition: all 0.3s ease;
-  }
-}
-
-/* Custom utility classes for personalization */
-@layer utilities {
-  .bg-primary-custom {
-    background-color: var(--primary-color);
-  }
-  
-  .text-primary-custom {
-    color: var(--primary-color);
-  }
-  
-  .border-primary-custom {
-    border-color: var(--primary-color);
-  }
-  
-  .bg-secondary-custom {
-    background-color: var(--secondary-color);
-  }
-  
-  .text-secondary-custom {
-    color: var(--secondary-color);
-  }
-  
-  .border-secondary-custom {
-    border-color: var(--secondary-color);
-  }
-
-  /* Utilitários para transições suaves */
-  .theme-transition {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-
-  /* Force primary colors on common elements */
-  .btn-primary, .button-primary {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-  }
-
-  .btn-secondary, .button-secondary {
-    background-color: var(--secondary-color) !important;
-    border-color: var(--secondary-color) !important;
   }
 }
