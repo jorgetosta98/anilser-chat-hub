@@ -2,27 +2,17 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-
-interface PersonalizationSettings {
-  isDarkMode: boolean;
-  selectedColor: {
-    name: string;
-    primary: string;
-    secondary: string;
-  };
-  customLogo: string | null;
-}
-
-const defaultSettings: PersonalizationSettings = {
-  isDarkMode: false,
-  selectedColor: {
-    name: "Verde Safeboy",
-    primary: "#0d9488",
-    secondary: "#14b8a6"
-  },
-  customLogo: null
-};
+import { PersonalizationSettings } from '@/types/personalization';
+import { defaultSettings } from '@/constants/personalization';
+import { applyThemeSettings } from '@/utils/personalization/themeUtils';
+import { 
+  loadLocalSettings, 
+  saveLocalSettings, 
+  loadUserSettings, 
+  saveUserSettings, 
+  deleteUserSettings 
+} from '@/utils/personalization/storageUtils';
+import { uploadLogoFile } from '@/utils/personalization/logoUtils';
 
 export function usePersonalization() {
   const [settings, setSettings] = useState<PersonalizationSettings>(defaultSettings);
@@ -30,114 +20,34 @@ export function usePersonalization() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Carregar configurações do usuário do Supabase
+  // Load user settings on mount
   useEffect(() => {
-    if (user) {
-      loadUserSettings();
-    } else {
-      // Se não estiver logado, usar localStorage como fallback
-      loadLocalSettings();
-    }
+    const loadSettings = async () => {
+      if (user) {
+        const userSettings = await loadUserSettings(user.id);
+        setSettings(userSettings);
+      } else {
+        const localSettings = loadLocalSettings();
+        setSettings(localSettings);
+      }
+      setLoading(false);
+    };
+
+    loadSettings();
   }, [user]);
 
-  // Aplicar configurações sempre que mudarem
+  // Apply settings whenever they change
   useEffect(() => {
-    applySettings();
+    applyThemeSettings(settings);
   }, [settings]);
-
-  const loadUserSettings = async () => {
-    if (!user) return;
-    
-    try {
-      // Using any type temporarily until Supabase types are regenerated
-      const { data, error } = await (supabase as any)
-        .from('user_personalization')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao carregar configurações:', error);
-        setSettings(defaultSettings);
-      } else if (data) {
-        setSettings({
-          isDarkMode: data.is_dark_mode || false,
-          selectedColor: {
-            name: data.color_name || defaultSettings.selectedColor.name,
-            primary: data.primary_color || defaultSettings.selectedColor.primary,
-            secondary: data.secondary_color || defaultSettings.selectedColor.secondary
-          },
-          customLogo: data.logo_url || null
-        });
-      } else {
-        setSettings(defaultSettings);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar configurações:', error);
-      setSettings(defaultSettings);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadLocalSettings = () => {
-    const savedSettings = localStorage.getItem('personalization-settings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...defaultSettings, ...parsed });
-      } catch (error) {
-        console.error('Erro ao carregar configurações locais:', error);
-        setSettings(defaultSettings);
-      }
-    } else {
-      setSettings(defaultSettings);
-    }
-    setLoading(false);
-  };
-
-  const applySettings = () => {
-    // Aplicar tema escuro/claro
-    const html = document.documentElement;
-    if (settings.isDarkMode) {
-      html.classList.add('dark');
-    } else {
-      html.classList.remove('dark');
-    }
-
-    // Aplicar cores personalizadas via CSS variables
-    html.style.setProperty('--primary-color', settings.selectedColor.primary);
-    html.style.setProperty('--secondary-color', settings.selectedColor.secondary);
-    
-    // Aplicar cores aos componentes shadcn/ui
-    const primaryRgb = hexToRgb(settings.selectedColor.primary);
-    const secondaryRgb = hexToRgb(settings.selectedColor.secondary);
-    
-    if (primaryRgb) {
-      html.style.setProperty('--primary', `${primaryRgb.r} ${primaryRgb.g} ${primaryRgb.b}`);
-    }
-    if (secondaryRgb) {
-      html.style.setProperty('--sidebar-primary', settings.selectedColor.primary);
-      html.style.setProperty('--sidebar-accent', settings.selectedColor.secondary);
-    }
-  };
-
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
 
   const updateSettings = (newSettings: Partial<PersonalizationSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     
-    // Salvar localmente para resposta imediata
+    // Save locally for immediate response when not logged in
     if (!user) {
-      localStorage.setItem('personalization-settings', JSON.stringify(updatedSettings));
+      saveLocalSettings(updatedSettings);
     }
   };
 
@@ -151,21 +61,31 @@ export function usePersonalization() {
       return null;
     }
 
-    try {
-      // Criar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      
-      // Upload para o Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('user-logos')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+    // Validate file size
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O logo deve ter no máximo 2MB.",
+        variant: "destructive",
+      });
+      return null;
+    }
 
-      if (error) {
-        console.error('Erro no upload:', error);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Por favor, selecione uma imagem (PNG, JPG, etc.).",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    try {
+      const logoUrl = await uploadLogoFile(file, user.id);
+      if (logoUrl) {
+        return logoUrl;
+      } else {
         toast({
           title: "Erro no upload",
           description: "Não foi possível fazer upload da logo.",
@@ -173,13 +93,6 @@ export function usePersonalization() {
         });
         return null;
       }
-
-      // Obter URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-logos')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
     } catch (error) {
       console.error('Erro no upload:', error);
       toast({
@@ -193,7 +106,7 @@ export function usePersonalization() {
 
   const saveSettings = async () => {
     if (!user) {
-      localStorage.setItem('personalization-settings', JSON.stringify(settings));
+      saveLocalSettings(settings);
       toast({
         title: "Configurações salvas localmente!",
         description: "Suas preferências foram salvas no navegador.",
@@ -202,37 +115,16 @@ export function usePersonalization() {
     }
 
     try {
-      // Using any type temporarily until Supabase types are regenerated
-      const { error } = await (supabase as any)
-        .from('user_personalization')
-        .upsert({
-          user_id: user.id,
-          is_dark_mode: settings.isDarkMode,
-          color_name: settings.selectedColor.name,
-          primary_color: settings.selectedColor.primary,
-          secondary_color: settings.selectedColor.secondary,
-          logo_url: settings.customLogo,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('Erro ao salvar:', error);
-        toast({
-          title: "Erro ao salvar",
-          description: "Não foi possível salvar as configurações.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Configurações salvas!",
-          description: "Suas preferências de personalização foram aplicadas com sucesso.",
-        });
-      }
+      await saveUserSettings(user.id, settings);
+      toast({
+        title: "Configurações salvas!",
+        description: "Suas preferências de personalização foram aplicadas com sucesso.",
+      });
     } catch (error) {
       console.error('Erro ao salvar:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as configurações.",
+        description: "Não foi possível salvar as configurações.",
         variant: "destructive",
       });
     }
@@ -241,10 +133,7 @@ export function usePersonalization() {
   const resetToDefault = async () => {
     if (user) {
       try {
-        await (supabase as any)
-          .from('user_personalization')
-          .delete()
-          .eq('user_id', user.id);
+        await deleteUserSettings(user.id);
       } catch (error) {
         console.error('Erro ao resetar:', error);
       }
