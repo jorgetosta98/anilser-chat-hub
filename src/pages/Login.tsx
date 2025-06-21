@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    // Aqui você implementaria a lógica de autenticação
+    // Por enquanto, apenas redireciona para o chat
+    navigate('/chat');
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -77,7 +84,7 @@ export default function Login() {
 
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-white"
-                onClick={() => window.location.href = '/'}
+                onClick={handleLogin}
               >
                 Entrar
               </Button>
