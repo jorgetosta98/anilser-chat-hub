@@ -39,6 +39,11 @@ const App = () => (
               <Chat />
             </AppLayout>
           } />
+          <Route path="/chat/:chatId" element={
+            <AppLayout>
+              <Chat />
+            </AppLayout>
+          } />
           <Route path="/relatorios" element={
             <AppLayout>
               <Relatorios />
