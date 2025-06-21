@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      conversation_ratings: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          feedback: string | null
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_ratings_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -129,6 +164,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_user: boolean
+          used_tags: string[] | null
         }
         Insert: {
           content: string
@@ -136,6 +172,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_user?: boolean
+          used_tags?: string[] | null
         }
         Update: {
           content?: string
@@ -143,6 +180,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_user?: boolean
+          used_tags?: string[] | null
         }
         Relationships: [
           {

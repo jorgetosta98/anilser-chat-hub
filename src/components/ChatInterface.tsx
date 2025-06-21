@@ -1,56 +1,62 @@
 
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { useMessages } from "@/hooks/useMessages";
-import { useEffect, useRef } from "react";
+import { ChatRatingModal } from "./modals/ChatRatingModal";
 
 interface ChatInterfaceProps {
-  conversationId: string | null;
+  conversationId: string;
 }
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const { messages, isLoading } = useMessages(conversationId);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [hasShownRating, setHasShownRating] = useState(false);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Show rating modal after user has had a meaningful conversation (5+ messages)
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    if (messages && messages.length >= 5 && !hasShownRating) {
+      const lastMessage = messages[messages.length - 1];
+      // Show rating modal if the last message is from the AI
+      if (!lastMessage.is_user) {
+        const timer = setTimeout(() => {
+          setShowRatingModal(true);
+          setHasShownRating(true);
+        }, 2000); // Wait 2 seconds after AI response
+
+        return () => clearTimeout(timer);
       }
     }
-  }, [messages]);
+  }, [messages, hasShownRating]);
 
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-gray-500">Carregando mensagens...</div>
+        <div className="text-gray-500">Carregando conversa...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 relative">
-      <ScrollArea className="h-full" ref={scrollAreaRef}>
-        <div className="p-8 max-w-5xl mx-auto w-full">
-          <div className="space-y-2">
-            {messages.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>Esta conversa está vazia.</p>
-                <p className="text-sm">Envie uma mensagem para começar!</p>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                />
-              ))
-            )}
-          </div>
+    <>
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
+          {messages?.map((message) => (
+            <ChatMessage
+              key={message.id}
+              content={message.content}
+              isUser={message.is_user}
+              timestamp={message.created_at}
+            />
+          ))}
         </div>
-      </ScrollArea>
-    </div>
+      </div>
+
+      <ChatRatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        conversationId={conversationId}
+      />
+    </>
   );
 }
