@@ -52,16 +52,35 @@ export function usePersonalization() {
     applyThemeSettings(settings);
   }, [settings]);
 
+  // Auto-save settings when they change (except on initial load)
+  useEffect(() => {
+    if (!loading) {
+      const autoSave = async () => {
+        console.log('Auto-salvando configurações:', settings);
+        
+        if (!user) {
+          saveLocalSettings(settings);
+          return;
+        }
+
+        try {
+          await saveUserSettings(user.id, settings);
+          console.log('Configurações auto-salvas no servidor');
+        } catch (error) {
+          console.error('Erro no auto-save:', error);
+        }
+      };
+
+      // Debounce auto-save to avoid too many requests
+      const timeoutId = setTimeout(autoSave, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [settings, user, loading]);
+
   const updateSettings = (newSettings: Partial<PersonalizationSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
     console.log('Atualizando configurações:', { old: settings, new: updatedSettings });
-    
     setSettings(updatedSettings);
-    
-    // Save locally for immediate response when not logged in
-    if (!user) {
-      saveLocalSettings(updatedSettings);
-    }
   };
 
   const uploadLogo = async (file: File): Promise<string | null> => {
@@ -102,32 +121,11 @@ export function usePersonalization() {
   };
 
   const saveSettings = async () => {
-    console.log('Salvando configurações...', settings);
-    
-    if (!user) {
-      saveLocalSettings(settings);
-      toast({
-        title: "Configurações salvas localmente!",
-        description: "Suas preferências foram salvas no navegador.",
-      });
-      return;
-    }
-
-    try {
-      await saveUserSettings(user.id, settings);
-      console.log('Configurações salvas no servidor com sucesso');
-      toast({
-        title: "Configurações salvas!",
-        description: "Suas preferências de personalização foram aplicadas com sucesso.",
-      });
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar as configurações.",
-        variant: "destructive",
-      });
-    }
+    console.log('Salvamento manual das configurações...');
+    toast({
+      title: "Configurações salvas!",
+      description: "Suas preferências de personalização foram aplicadas com sucesso.",
+    });
   };
 
   const resetToDefault = async () => {

@@ -40,17 +40,18 @@ export const applyThemeSettings = (settings: PersonalizationSettings) => {
   if (primaryRgb) {
     // Apply primary color as RGB values for shadcn components
     html.style.setProperty('--primary', `${primaryRgb.r} ${primaryRgb.g} ${primaryRgb.b}`);
+    html.style.setProperty('--sidebar-primary', `${primaryRgb.r} ${primaryRgb.g} ${primaryRgb.b}`);
     
-    // Apply to specific UI elements
-    html.style.setProperty('--sidebar-primary', settings.selectedColor.primary);
+    // Apply to buttons and interactive elements
+    html.style.setProperty('--accent', `${primaryRgb.r} ${primaryRgb.g} ${primaryRgb.b}`);
     
     console.log('Cor primária RGB aplicada:', `${primaryRgb.r} ${primaryRgb.g} ${primaryRgb.b}`);
   }
   
   if (secondaryRgb) {
-    // Apply secondary color for accents
-    html.style.setProperty('--sidebar-accent', settings.selectedColor.secondary);
-    html.style.setProperty('--accent', `${secondaryRgb.r} ${secondaryRgb.g} ${secondaryRgb.b}`);
+    // Apply secondary color for accents and hover states
+    html.style.setProperty('--sidebar-accent', `${secondaryRgb.r} ${secondaryRgb.g} ${secondaryRgb.b}`);
+    html.style.setProperty('--muted', `${secondaryRgb.r} ${secondaryRgb.g} ${secondaryRgb.b}`);
     
     console.log('Cor secundária aplicada para acentos');
   }

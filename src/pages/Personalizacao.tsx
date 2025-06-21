@@ -1,5 +1,5 @@
 
-import { Upload, Palette, Sun, Settings, RotateCcw } from "lucide-react";
+import { Upload, Palette, Sun, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -9,7 +9,7 @@ import { ThemeSettings } from "@/components/personalization/ThemeSettings";
 import { ColorSelection } from "@/components/personalization/ColorSelection";
 
 export default function Personalizacao() {
-  const { settings, loading, updateSettings, saveSettings, resetToDefault, uploadLogo } = usePersonalization();
+  const { settings, loading, updateSettings, resetToDefault, uploadLogo } = usePersonalization();
 
   if (loading) {
     return (
@@ -44,7 +44,10 @@ export default function Personalizacao() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Personalização</h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Customize a aparência do aplicativo de acordo com sua marca
+                Customize a aparência do aplicativo de acordo com sua marca. 
+                <span className="block text-sm text-primary-custom font-medium mt-1">
+                  ✓ Configurações salvas automaticamente
+                </span>
               </p>
             </div>
             <Button variant="outline" onClick={resetToDefault}>
@@ -102,7 +105,7 @@ export default function Personalizacao() {
                 <span>Cores do Sistema</span>
               </CardTitle>
               <CardDescription className="dark:text-gray-400">
-                Selecione as cores que representam sua marca
+                Selecione as cores que representam sua marca - aplicadas em toda a interface
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -115,12 +118,22 @@ export default function Personalizacao() {
           </Card>
         </div>
 
-        {/* Save Button */}
-        <div className="mt-8 flex justify-end">
-          <Button onClick={saveSettings} className="px-8">
-            <Settings className="w-4 h-4 mr-2" />
-            Salvar Configurações
-          </Button>
+        {/* Info Panel */}
+        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start space-x-3">
+            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-white text-xs">ℹ</span>
+            </div>
+            <div className="text-sm">
+              <p className="text-blue-800 dark:text-blue-200 font-medium mb-1">
+                Salvamento Automático Ativo
+              </p>
+              <p className="text-blue-700 dark:text-blue-300">
+                Todas as suas personalizações são salvas automaticamente no banco de dados 
+                e aplicadas imediatamente em toda a interface do sistema.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

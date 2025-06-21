@@ -101,21 +101,33 @@
   }
 
   /* Aplicar cores personalizadas aos elementos principais */
-  .bg-primary {
+  .bg-primary, button:not(.bg-destructive):not(.bg-secondary):not(.bg-outline):not(.bg-ghost):not(.bg-link) {
     background-color: hsl(var(--primary)) !important;
   }
 
-  /* Quando variáveis customizadas estão definidas, usar essas */
-  [style*="--primary-color"] .bg-primary {
+  /* Aplicar cores customizadas quando definidas */
+  [style*="--primary-color"] .bg-primary,
+  [style*="--primary-color"] button:not(.bg-destructive):not(.bg-secondary):not(.bg-outline):not(.bg-ghost):not(.bg-link) {
     background-color: var(--primary-color) !important;
   }
 
-  [style*="--secondary-color"] .border-secondary {
+  [style*="--secondary-color"] .border-secondary,
+  [style*="--secondary-color"] .bg-secondary {
     border-color: var(--secondary-color) !important;
+    background-color: var(--secondary-color) !important;
+  }
+
+  /* Sidebar personalization */
+  [style*="--primary-color"] .bg-sidebar-primary {
+    background-color: var(--primary-color) !important;
+  }
+
+  [style*="--secondary-color"] .bg-sidebar-accent {
+    background-color: var(--secondary-color) !important;
   }
 
   /* Aplicar transições suaves para mudanças de tema */
-  button, .card, .border {
+  button, .card, .border, [data-sidebar] {
     transition: all 0.3s ease;
   }
 }
@@ -149,5 +161,16 @@
   /* Utilitários para transições suaves */
   .theme-transition {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Force primary colors on common elements */
+  .btn-primary, .button-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+  }
+
+  .btn-secondary, .button-secondary {
+    background-color: var(--secondary-color) !important;
+    border-color: var(--secondary-color) !important;
   }
 }
