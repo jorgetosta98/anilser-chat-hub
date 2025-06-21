@@ -43,22 +43,23 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
                 )}
               </button>
             </div>
-            <div className="space-y-1 flex-1">
-              {showRecentChats ? (
-                recentChats.slice(0, 9).map(chat => (
-                  <SidebarMenuItem
-                    key={chat.id}
-                    item={{
-                      title: chat.title,
-                      icon: MessageSquare,
-                      path: `/chat/${chat.id}`
-                    }}
-                    isCollapsed={false}
-                  />
-                ))
-              ) : (
-                <div className="text-sidebar-foreground/50 text-sm italic">
-                  Conversas ocultas...
+            <div className="space-y-1 flex-1 relative">
+              {recentChats.slice(0, 9).map(chat => (
+                <SidebarMenuItem
+                  key={chat.id}
+                  item={{
+                    title: chat.title,
+                    icon: MessageSquare,
+                    path: `/chat/${chat.id}`
+                  }}
+                  isCollapsed={false}
+                />
+              ))}
+              {!showRecentChats && (
+                <div className="absolute inset-0 backdrop-blur-sm bg-sidebar-background/30 flex items-center justify-center">
+                  <div className="text-sidebar-foreground/70 text-sm font-medium bg-sidebar-background/80 px-3 py-2 rounded-md border border-sidebar-border">
+                    Conversas ocultas
+                  </div>
                 </div>
               )}
             </div>
