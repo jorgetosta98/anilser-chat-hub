@@ -31,7 +31,12 @@ const frequentQuestions = [
 ];
 
 // Mock chat history data
-const mockChatHistory = {
+const mockChatHistory: Record<number, Array<{
+  id: number;
+  message: string;
+  isUser: boolean;
+  timestamp: string;
+}>> = {
   1: [
     {
       id: 1,
@@ -53,8 +58,9 @@ export default function Chat() {
   const { chatId } = useParams();
   
   // Check if we're viewing a specific chat
-  const isViewingChat = chatId && mockChatHistory[chatId as keyof typeof mockChatHistory];
-  const chatMessages = isViewingChat ? mockChatHistory[chatId as keyof typeof mockChatHistory] : [];
+  const chatIdNumber = chatId ? parseInt(chatId, 10) : null;
+  const isViewingChat = chatIdNumber && mockChatHistory[chatIdNumber];
+  const chatMessages = isViewingChat ? mockChatHistory[chatIdNumber] : [];
 
   const handleSendMessage = () => {
     if (message.trim()) {
@@ -162,7 +168,7 @@ export default function Chat() {
                 <div className="p-2 bg-primary-50 rounded-lg">
                   <Volume2 className="w-5 h-5 text-primary" />
                 </div>
-                <p className="text-sm text-gray-700">{quickQuestions[2]}</p>
+                <p className="text-sm text-gray-707">{quickQuestions[2]}</p>
               </div>
             </CardContent>
           </Card>
