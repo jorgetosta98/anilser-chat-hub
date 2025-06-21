@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PasswordResetModalProps {
   isOpen: boolean;
@@ -16,14 +18,47 @@ export function PasswordResetModal({
   onClose
 }: PasswordResetModalProps) {
   const [formData, setFormData] = useState({
-    currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
+  const validatePassword = (password: string) => {
+    const errors = [];
+    
+    if (password.length < 6) {
+      errors.push("A senha deve ter pelo menos 6 caracteres");
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push("A senha deve conter pelo menos uma letra maiúscula");
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      errors.push("A senha deve conter pelo menos uma letra minúscula");
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      errors.push("A senha deve conter pelo menos um número");
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async () => {
+    // Validações
+    if (!formData.newPassword || !formData.confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Erro",
@@ -33,10 +68,11 @@ export function PasswordResetModal({
       return;
     }
 
-    if (formData.newPassword.length < 6) {
+    const passwordErrors = validatePassword(formData.newPassword);
+    if (passwordErrors.length > 0) {
       toast({
-        title: "Erro",
-        description: "A nova senha deve ter pelo menos 6 caracteres.",
+        title: "Senha inválida",
+        description: passwordErrors.join(". "),
         variant: "destructive",
       });
       return;
@@ -45,25 +81,31 @@ export function PasswordResetModal({
     setIsLoading(true);
     
     try {
+      console.log('Iniciando atualização de senha...');
+      
       // Atualizar senha no Supabase
       const { error } = await supabase.auth.updateUser({
         password: formData.newPassword
       });
 
       if (error) {
+        console.error('Erro do Supabase:', error);
         throw error;
       }
+      
+      console.log('Senha atualizada com sucesso');
       
       toast({
         title: "Senha atualizada",
         description: "Sua senha foi alterada com sucesso.",
       });
       
+      // Resetar formulário
       setFormData({
-        currentPassword: "",
         newPassword: "",
         confirmPassword: ""
       });
+      
       onClose();
     } catch (error: any) {
       console.error('Erro ao alterar senha:', error);
@@ -74,6 +116,10 @@ export function PasswordResetModal({
         errorMessage = "A nova senha deve ser diferente da atual.";
       } else if (error.message?.includes('Password should be at least')) {
         errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+      } else if (error.message?.includes('same_password')) {
+        errorMessage = "A nova senha deve ser diferente da senha atual.";
+      } else if (error.message?.includes('weak_password')) {
+        errorMessage = "A senha é muito fraca. Use uma senha mais forte.";
       }
       
       toast({
@@ -86,10 +132,20 @@ export function PasswordResetModal({
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      newPassword: "",
+      confirmPassword: ""
+    });
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    onClose();
+  };
+
   return (
     <FormModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Redefinir Senha"
       onSubmit={handleSubmit}
       submitText="Alterar Senha"
@@ -98,43 +154,67 @@ export function PasswordResetModal({
     >
       <div className="space-y-4">
         <div>
-          <Label htmlFor="currentPassword">Senha atual</Label>
-          <Input
-            id="currentPassword"
-            type="password"
-            value={formData.currentPassword}
-            onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-            placeholder="Digite sua senha atual"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Por questões de segurança, a validação da senha atual está em desenvolvimento
-          </p>
-        </div>
-        
-        <div>
           <Label htmlFor="newPassword">Nova senha</Label>
-          <Input
-            id="newPassword"
-            type="password"
-            value={formData.newPassword}
-            onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-            placeholder="Digite sua nova senha"
-          />
+          <div className="relative">
+            <Input
+              id="newPassword"
+              type={showPassword ? "text" : "password"}
+              value={formData.newPassword}
+              onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+              placeholder="Digite sua nova senha"
+              className="pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </Button>
+          </div>
         </div>
         
         <div>
           <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-            placeholder="Confirme sua nova senha"
-          />
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+              placeholder="Confirme sua nova senha"
+              className="pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </Button>
+          </div>
         </div>
         
-        <div className="text-sm text-gray-600">
-          <p>A senha deve ter pelo menos 6 caracteres.</p>
+        <div className="text-sm text-gray-600 space-y-1">
+          <p className="font-medium">A senha deve conter:</p>
+          <ul className="list-disc list-inside space-y-1 text-xs">
+            <li>Pelo menos 6 caracteres</li>
+            <li>Pelo menos uma letra maiúscula</li>
+            <li>Pelo menos uma letra minúscula</li>
+            <li>Pelo menos um número</li>
+          </ul>
         </div>
       </div>
     </FormModal>
