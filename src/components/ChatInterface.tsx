@@ -15,9 +15,9 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ messages }: ChatInterfaceProps) {
   return (
-    <div className="h-full">
+    <div className="flex-1 relative">
       <ScrollArea className="h-full">
-        <div className="p-6 max-w-4xl mx-auto w-full pb-4">
+        <div className="p-6 max-w-4xl mx-auto w-full">
           <div className="space-y-4">
             {messages.map((msg) => (
               <ChatMessage
