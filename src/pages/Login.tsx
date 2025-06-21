@@ -141,10 +141,10 @@ export default function Login() {
           <div className="w-full max-w-sm space-y-8">
             {/* Logo */}
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-6">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-teal-600 rounded-full mb-4">
+                <Shield className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Safeboy</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Safeboy</h1>
             </div>
 
             {/* Welcome */}
@@ -164,7 +164,7 @@ export default function Login() {
                     placeholder="seuemail@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={`pl-10 h-12 ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                   />
                 </div>
                 {errors.email && (
@@ -181,7 +181,7 @@ export default function Login() {
                     placeholder="••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 h-12 ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
                   />
                   <button
                     type="button"
@@ -196,31 +196,18 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Remember me and Forgot password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="rememberMe"
-                    checked={formData.rememberMe}
-                    onCheckedChange={(checked) => handleInputChange('rememberMe', checked as boolean)}
-                  />
-                  <label
-                    htmlFor="rememberMe"
-                    className="text-sm text-gray-600 cursor-pointer"
-                  >
-                    Lembrar-me
-                  </label>
-                </div>
+              {/* Forgot password link */}
+              <div className="text-center">
                 <Link 
                   to="/forgot-password" 
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-teal-600 hover:underline"
                 >
                   Esqueci Minha Senha
                 </Link>
               </div>
 
               <Button 
-                className="w-full bg-primary hover:bg-primary/90 text-white h-12"
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white h-12 text-base"
                 onClick={handleLogin}
                 disabled={isLoading}
               >
@@ -229,7 +216,7 @@ export default function Login() {
 
               <div className="text-center text-sm text-gray-600">
                 Não tem uma conta?{" "}
-                <Link to="/register" className="text-primary hover:underline">
+                <Link to="/register" className="text-teal-600 hover:underline">
                   Cadastre-se aqui.
                 </Link>
               </div>
