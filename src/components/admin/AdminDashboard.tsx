@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, MessageSquare, Activity, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Users, MessageSquare, Activity, TrendingUp, DollarSign, CreditCard } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
 
 // Mock data - em um app real viria de uma API
 const statsData = [
@@ -22,11 +22,29 @@ const activityData = [
   { time: "20:00", atividade: 34 }
 ];
 
+// Novos dados financeiros
+const revenueData = [
+  { name: "Jan", receita: 12400, despesas: 8200, lucro: 4200 },
+  { name: "Fev", receita: 15600, despesas: 9100, lucro: 6500 },
+  { name: "Mar", receita: 18900, despesas: 10500, lucro: 8400 },
+  { name: "Abr", receita: 22300, despesas: 11800, lucro: 10500 },
+  { name: "Mai", receita: 28700, despesas: 13200, lucro: 15500 },
+  { name: "Jun", receita: 31200, despesas: 14100, lucro: 17100 }
+];
+
+const planRevenueData = [
+  { name: "Plano Básico", value: 35, receita: 15400, color: "#0088FE" },
+  { name: "Plano Pro", value: 45, receita: 22800, color: "#00C49F" },
+  { name: "Plano Premium", value: 20, receita: 12600, color: "#FFBB28" }
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
 export function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Estatísticas principais */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -78,9 +96,35 @@ export function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">R$ 31.2k</div>
+            <p className="text-xs text-muted-foreground">
+              +23% em relação ao mês passado
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Assinaturas Ativas</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">847</div>
+            <p className="text-xs text-muted-foreground">
+              +8% este mês
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* Gráficos - primeira linha */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -115,6 +159,95 @@ export function AdminDashboard() {
                 <Tooltip />
                 <Line type="monotone" dataKey="atividade" stroke="#2563eb" strokeWidth={2} />
               </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráficos financeiros - segunda linha */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Desempenho Financeiro</CardTitle>
+            <CardDescription>Receita, despesas e lucro dos últimos 6 meses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`R$ ${value.toLocaleString()}`, '']} />
+                <Area 
+                  type="monotone" 
+                  dataKey="receita" 
+                  stackId="1" 
+                  stroke="#10b981" 
+                  fill="url(#colorReceita)" 
+                  name="Receita"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="despesas" 
+                  stackId="2" 
+                  stroke="#ef4444" 
+                  fill="url(#colorDespesas)" 
+                  name="Despesas"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="lucro" 
+                  stackId="3" 
+                  stroke="#3b82f6" 
+                  fill="url(#colorLucro)" 
+                  name="Lucro"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Receita por Plano</CardTitle>
+            <CardDescription>Distribuição da receita por tipo de assinatura</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={planRevenueData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {planRevenueData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name, props) => [
+                  `${value}% (R$ ${props.payload.receita.toLocaleString()})`, 
+                  props.payload.name
+                ]} />
+              </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
