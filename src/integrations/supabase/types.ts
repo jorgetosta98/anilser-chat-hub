@@ -68,6 +68,7 @@ export type Database = {
           author_id: string | null
           category_id: string | null
           content: string
+          context: string | null
           created_at: string
           file_type: string | null
           file_url: string | null
@@ -83,6 +84,7 @@ export type Database = {
           author_id?: string | null
           category_id?: string | null
           content: string
+          context?: string | null
           created_at?: string
           file_type?: string | null
           file_url?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           author_id?: string | null
           category_id?: string | null
           content?: string
+          context?: string | null
           created_at?: string
           file_type?: string | null
           file_url?: string | null
