@@ -56,15 +56,25 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     <div className="border-t bg-white p-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-primary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-primary"
+            disabled={!conversationId}
+          >
             <Paperclip className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-primary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-primary"
+            disabled={!conversationId}
+          >
             <Mic className="w-5 h-5" />
           </Button>
           <div className="flex-1 relative">
             <Input
-              placeholder={conversationId ? "Digite sua mensagem ou comando" : "Selecione uma conversa para começar"}
+              placeholder={conversationId ? "Digite sua mensagem ou comando" : "Clique em 'Iniciar Nova Conversa' para começar"}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}

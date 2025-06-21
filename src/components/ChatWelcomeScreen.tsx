@@ -14,10 +14,12 @@ export function ChatWelcomeScreen() {
   
   const firstName = profile?.full_name?.split(' ')[0] || 'Usuário';
 
-  const handleStartNewChat = () => {
-    createConversation('Nova Conversa');
-    // The conversation will be created and the user will see it in the sidebar
-    // They can click on it to start chatting
+  const handleStartNewChat = async () => {
+    // Create a new conversation and navigate to it
+    const newConversation = await createConversation('Nova Conversa');
+    if (newConversation) {
+      navigate(`/chat/${newConversation.id}`);
+    }
   };
 
   return (

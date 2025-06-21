@@ -74,10 +74,21 @@ export function useConversations() {
     },
   });
 
+  // Função que retorna uma Promise com a conversa criada
+  const createConversation = async (title: string): Promise<Conversation | null> => {
+    try {
+      const result = await createConversationMutation.mutateAsync(title);
+      return result;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      return null;
+    }
+  };
+
   return {
     conversations: conversations || [],
     isLoading,
-    createConversation: createConversationMutation.mutate,
+    createConversation,
     updateConversation: updateConversationMutation.mutate,
     deleteConversation: deleteConversationMutation.mutate,
     isCreating: createConversationMutation.isPending,
