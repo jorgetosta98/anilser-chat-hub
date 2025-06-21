@@ -1,3 +1,4 @@
+
 import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -103,7 +104,7 @@ export function AppSidebar() {
   const isAdminArea = location.pathname.startsWith('/admin');
 
   return (
-    <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}>
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col flex-shrink-0`}>
       <SidebarHeader 
         isCollapsed={isCollapsed} 
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)} 
@@ -111,7 +112,7 @@ export function AppSidebar() {
 
       {isAdminArea ? (
         // Admin Menu
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Menu Items */}
           <div className="p-4 space-y-2 border-b border-sidebar-border">
             {adminTopMenuItems.map(item => (

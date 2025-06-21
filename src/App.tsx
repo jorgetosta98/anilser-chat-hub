@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,9 +21,11 @@ import AdminMinhaConta from "./pages/AdminMinhaConta";
 const queryClient = new QueryClient();
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex w-full min-h-screen">
+  <div className="flex h-screen w-full overflow-hidden">
     <AppSidebar />
-    {children}
+    <div className="flex-1 overflow-auto">
+      {children}
+    </div>
   </div>
 );
 
