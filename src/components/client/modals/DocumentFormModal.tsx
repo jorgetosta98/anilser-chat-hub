@@ -129,6 +129,13 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
     setIsLoading(true);
 
     try {
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const documentData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
@@ -136,6 +143,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
         category_id: formData.category_id || null,
         tags: formData.tags,
         is_public: formData.is_public,
+        author_id: user.id, // Add the author_id field
       };
 
       if (document?.id) {
