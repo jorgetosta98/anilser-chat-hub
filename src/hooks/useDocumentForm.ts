@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useDocumentAnalysis } from "@/hooks/useDocumentAnalysis";
 
 interface Category {
   id: string;
@@ -35,7 +36,9 @@ export function useDocumentForm(document?: any) {
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+  const { analyzeDocument } = useDocumentAnalysis();
 
   useEffect(() => {
     if (document) {
@@ -84,7 +87,7 @@ export function useDocumentForm(document?: any) {
     }
   };
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setUploadedFile(file);
     setFormData(prev => ({
       ...prev,
@@ -92,6 +95,41 @@ export function useDocumentForm(document?: any) {
       file_type: file.type,
       content: "" 
     }));
+
+    // Análise automática do documento
+    setIsAnalyzing(true);
+    try {
+      const analysis = await analyzeDocument(file);
+      
+      if (analysis) {
+        // Aplicar sugestões da IA automaticamente
+        setFormData(prev => ({
+          ...prev,
+          summary: analysis.suggestedSummary || prev.summary,
+          tags: [...new Set([...prev.tags, ...analysis.suggestedTags])], // Combinar tags sem duplicatas
+          content: analysis.extractedText || prev.content,
+        }));
+
+        // Tentar encontrar categoria correspondente
+        const matchingCategory = categories.find(cat => 
+          cat.name.toLowerCase().includes(analysis.suggestedCategory.toLowerCase()) ||
+          analysis.suggestedCategory.toLowerCase().includes(cat.name.toLowerCase())
+        );
+
+        if (matchingCategory) {
+          setFormData(prev => ({ ...prev, category_id: matchingCategory.id }));
+        }
+
+        toast({
+          title: "Análise concluída",
+          description: `Sugestões aplicadas: resumo, ${analysis.suggestedTags.length} tags e conteúdo extraído.`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro na análise automática:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleFileRemove = () => {
@@ -112,6 +150,7 @@ export function useDocumentForm(document?: any) {
     formData,
     categories,
     uploadedFile,
+    isAnalyzing,
     fetchCategories,
     handleFileSelect,
     handleFileRemove,

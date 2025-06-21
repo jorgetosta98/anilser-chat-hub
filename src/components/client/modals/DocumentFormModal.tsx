@@ -2,6 +2,8 @@
 import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Loader2 } from "lucide-react";
 import { DocumentFileUpload } from "./DocumentFileUpload";
 import { DocumentTagsInput } from "./DocumentTagsInput";
 import { DocumentFormFields } from "./DocumentFormFields";
@@ -34,6 +36,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
     formData,
     categories,
     uploadedFile,
+    isAnalyzing,
     fetchCategories,
     handleFileSelect,
     handleFileRemove,
@@ -64,8 +67,15 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] p-4">
         <DialogHeader className="pb-2">
-          <DialogTitle className="text-lg">
+          <DialogTitle className="text-lg flex items-center gap-2">
             {document ? "Editar Documento" : "Novo Documento"}
+            {isAnalyzing && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Brain className="w-3 h-3" />
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Analisando com IA...
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -102,6 +112,18 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
                 tags={formData.tags}
                 onTagsChange={(tags) => updateFormData({ tags })}
               />
+
+              {isAnalyzing && (
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <Brain className="w-4 h-4" />
+                    <span className="text-sm font-medium">Análise Inteligente</span>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Nossa IA está analisando o documento para sugerir resumo, tags e categoria automaticamente.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -109,7 +131,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || isUploading}>
+            <Button type="submit" disabled={isLoading || isUploading || isAnalyzing}>
               {isLoading || isUploading ? (
                 isUploading ? "Fazendo upload..." : "Salvando..."
               ) : (

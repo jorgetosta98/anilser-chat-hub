@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentFormModal } from "@/components/client/modals/DocumentFormModal";
 import { KnowledgePageHeader } from "@/components/knowledge/KnowledgePageHeader";
 import { KnowledgeFilters } from "@/components/knowledge/KnowledgeFilters";
 import { DocumentList } from "@/components/knowledge/DocumentList";
+import { IntelligentSearchPanel } from "@/components/knowledge/IntelligentSearchPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Brain, List } from "lucide-react";
 
 interface KnowledgeDocument {
   id: string;
@@ -130,27 +132,62 @@ export default function BaseConhecimento() {
     setIsDocumentModalOpen(true);
   };
 
+  const handleDocumentSelect = (documentId: string) => {
+    const document = documents.find(doc => doc.id === documentId);
+    if (document) {
+      openEditModal(document);
+    }
+  };
+
   return (
     <div className="flex-1 p-8 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <KnowledgePageHeader onCreateDocument={openCreateModal} />
 
-        <KnowledgeFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          categories={categories}
-        />
+        <Tabs defaultValue="traditional" className="mb-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="traditional" className="flex items-center gap-2">
+              <List className="w-4 h-4" />
+              Busca Tradicional
+            </TabsTrigger>
+            <TabsTrigger value="intelligent" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              Busca Inteligente IA
+            </TabsTrigger>
+          </TabsList>
 
-        <DocumentList
-          documents={documents}
-          isLoading={isLoading}
-          searchTerm={searchTerm}
-          selectedCategory={selectedCategory}
-          onEditDocument={openEditModal}
-          onDeleteDocument={handleDeleteDocument}
-        />
+          <TabsContent value="traditional" className="space-y-6">
+            <KnowledgeFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              categories={categories}
+            />
+
+            <DocumentList
+              documents={documents}
+              isLoading={isLoading}
+              searchTerm={searchTerm}
+              selectedCategory={selectedCategory}
+              onEditDocument={openEditModal}
+              onDeleteDocument={handleDeleteDocument}
+            />
+          </TabsContent>
+
+          <TabsContent value="intelligent" className="space-y-6">
+            <IntelligentSearchPanel onDocumentSelect={handleDocumentSelect} />
+            
+            <DocumentList
+              documents={documents}
+              isLoading={isLoading}
+              searchTerm=""
+              selectedCategory="all"
+              onEditDocument={openEditModal}
+              onDeleteDocument={handleDeleteDocument}
+            />
+          </TabsContent>
+        </Tabs>
 
         <DocumentFormModal
           isOpen={isDocumentModalOpen}
