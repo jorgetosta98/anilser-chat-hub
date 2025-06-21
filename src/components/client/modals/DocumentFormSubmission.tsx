@@ -94,7 +94,7 @@ export function useDocumentFormSubmission({
         file_url: fileUrl || null,
         file_type: fileType || null,
         is_public: formData.is_public,
-        author_id: user.id,
+        user_id: user.id, // Use user_id instead of author_id to match database schema
       };
 
       if (document?.id) {
@@ -112,7 +112,7 @@ export function useDocumentFormSubmission({
       } else {
         const { error } = await supabase
           .from('knowledge_documents')
-          .insert([documentData]);
+          .insert(documentData); // Remove array brackets - insert single object
 
         if (error) throw error;
 
