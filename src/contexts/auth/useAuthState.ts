@@ -15,6 +15,7 @@ export const useAuthState = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        console.log('User metadata:', session?.user?.user_metadata);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -49,6 +50,7 @@ export const useAuthState = () => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.email);
+      console.log('Initial user metadata:', session?.user?.user_metadata);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

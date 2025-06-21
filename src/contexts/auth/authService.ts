@@ -25,12 +25,14 @@ export const signUpService = async (
     
     const metadata: any = {
       full_name: fullName,
+      name: fullName, // Adicionar também como 'name' para compatibilidade
       role: role
     };
     
-    if (company) {
-      metadata.company = company;
-    }
+    // Sempre incluir company, mesmo se vazio
+    metadata.company = company || '';
+    
+    console.log('Metadata sendo enviado para Supabase:', metadata);
     
     const { error } = await supabase.auth.signUp({
       email,

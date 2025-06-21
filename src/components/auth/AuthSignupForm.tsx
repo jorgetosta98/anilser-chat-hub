@@ -51,15 +51,18 @@ export function AuthSignupForm({ isLoading, setIsLoading }: AuthSignupFormProps)
     setIsLoading(true);
 
     try {
+      console.log('Dados do cadastro AuthSignupForm:', signupForm);
+      
       const { error } = await signUp(
         signupForm.email, 
         signupForm.password, 
         signupForm.fullName,
         'client',
-        signupForm.company
+        signupForm.company || ''
       );
       
       if (error) {
+        console.error('Erro no signUp:', error);
         toast({
           title: 'Erro no cadastro',
           description: error.message,
@@ -77,6 +80,7 @@ export function AuthSignupForm({ isLoading, setIsLoading }: AuthSignupFormProps)
         }, 2000);
       }
     } catch (error) {
+      console.error('Erro inesperado:', error);
       toast({
         title: 'Erro no cadastro',
         description: 'Ocorreu um erro inesperado.',

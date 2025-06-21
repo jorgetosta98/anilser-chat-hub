@@ -42,15 +42,18 @@ export default function Register() {
     setIsLoading(true);
 
     try {
+      console.log('Dados do formulário sendo enviados:', formData);
+      
       const { error } = await signUp(
         formData.email,
         formData.password,
         formData.name,
         'client',
-        formData.company
+        formData.company || ''
       );
 
       if (error) {
+        console.error('Erro no cadastro:', error);
         toast({
           title: "Erro no cadastro",
           description: error.message,
@@ -67,6 +70,7 @@ export default function Register() {
         }, 2000);
       }
     } catch (error) {
+      console.error('Erro inesperado no cadastro:', error);
       toast({
         title: "Erro no cadastro",
         description: "Ocorreu um erro inesperado.",
