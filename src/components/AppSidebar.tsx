@@ -1,8 +1,9 @@
-import { MessageSquare, Plus, BarChart3, Link, User, LogOut, Shield, Menu, ChevronDown, ChevronRight } from "lucide-react";
+import { MessageSquare, Plus, BarChart3, Link, User, LogOut, Shield, Menu, ChevronDown, ChevronRight, FileText, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 const topMenuItems = [{
   title: "Nova Conversa",
   icon: Plus,
@@ -15,6 +16,14 @@ const topMenuItems = [{
   expandable: true
 }];
 const bottomMenuItems = [{
+  title: "Base de Conhecimento",
+  icon: FileText,
+  path: "/base-conhecimento"
+}, {
+  title: "Personalização",
+  icon: Palette,
+  path: "/personalizacao"
+}, {
   title: "Conexões",
   icon: Link,
   path: "/conexoes"

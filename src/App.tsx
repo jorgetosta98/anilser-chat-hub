@@ -9,6 +9,8 @@ import Chat from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
 import Conexoes from "./pages/Conexoes";
 import MinhaConta from "./pages/MinhaConta";
+import BaseConhecimento from "./pages/BaseConhecimento";
+import Personalizacao from "./pages/Personalizacao";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +54,16 @@ const App = () => (
           <Route path="/conexoes" element={
             <AppLayout>
               <Conexoes />
+            </AppLayout>
+          } />
+          <Route path="/base-conhecimento" element={
+            <AppLayout>
+              <BaseConhecimento />
+            </AppLayout>
+          } />
+          <Route path="/personalizacao" element={
+            <AppLayout>
+              <Personalizacao />
             </AppLayout>
           } />
           <Route path="/minha-conta" element={
