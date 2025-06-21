@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { MenuItem } from "./menuData";
 
 interface SidebarMenuItemProps {
@@ -13,13 +14,17 @@ export function SidebarMenuItem({
   isCollapsed
 }: SidebarMenuItemProps) {
   const location = useLocation();
+  const { signOut } = useAuth();
   const isActive = location.pathname === item.path;
   const IconComponent = item.icon;
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   if (item.action === "logout") {

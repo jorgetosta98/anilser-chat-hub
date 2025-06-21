@@ -9,16 +9,112 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      organizations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          settings: Json | null
+          slug: string
+          status: Database["public"]["Enums"]["status_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          settings?: Json | null
+          slug: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          settings?: Json | null
+          slug?: string
+          status?: Database["public"]["Enums"]["status_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login_at: string | null
+          organization_id: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          settings: Json | null
+          status: Database["public"]["Enums"]["status_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login_at?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          settings?: Json | null
+          status?: Database["public"]["Enums"]["status_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          last_login_at?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          settings?: Json | null
+          status?: Database["public"]["Enums"]["status_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      user_belongs_to_org: {
+        Args: { user_id: string; org_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      status_type: "active" | "inactive" | "pending"
+      user_role: "admin" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +229,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      status_type: ["active", "inactive", "pending"],
+      user_role: ["admin", "client"],
+    },
   },
 } as const

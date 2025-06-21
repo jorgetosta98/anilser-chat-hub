@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppSidebar } from "@/components/AppSidebar";
 import Chat from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
@@ -12,8 +14,7 @@ import MinhaConta from "./pages/MinhaConta";
 import BaseConhecimento from "./pages/BaseConhecimento";
 import Personalizacao from "./pages/Personalizacao";
 import Admin from "./pages/Admin";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import AdminMinhaConta from "./pages/AdminMinhaConta";
@@ -35,78 +36,105 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/chat" element={
-            <AppLayout>
-              <Chat />
-            </AppLayout>
-          } />
-          <Route path="/chat/:chatId" element={
-            <AppLayout>
-              <Chat />
-            </AppLayout>
-          } />
-          <Route path="/relatorios" element={
-            <AppLayout>
-              <Relatorios />
-            </AppLayout>
-          } />
-          <Route path="/conexoes" element={
-            <AppLayout>
-              <Conexoes />
-            </AppLayout>
-          } />
-          <Route path="/base-conhecimento" element={
-            <AppLayout>
-              <BaseConhecimento />
-            </AppLayout>
-          } />
-          <Route path="/personalizacao" element={
-            <AppLayout>
-              <Personalizacao />
-            </AppLayout>
-          } />
-          <Route path="/minha-conta" element={
-            <AppLayout>
-              <MinhaConta />
-            </AppLayout>
-          } />
-          <Route path="/admin" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
-          <Route path="/admin/users" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
-          <Route path="/admin/conversations" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
-          <Route path="/admin/settings" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
-          <Route path="/admin/plans" element={
-            <AppLayout>
-              <Admin />
-            </AppLayout>
-          } />
-          <Route path="/admin/minha-conta" element={
-            <AppLayout>
-              <AdminMinhaConta />
-            </AppLayout>
-          } />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Auth />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Chat />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/chat/:chatId" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Chat />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/relatorios" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Relatorios />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/conexoes" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Conexoes />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/base-conhecimento" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <BaseConhecimento />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/personalizacao" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Personalizacao />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/minha-conta" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <MinhaConta />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <Admin />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <Admin />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/conversations" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <Admin />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <Admin />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/plans" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <Admin />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/minha-conta" element={
+              <ProtectedRoute requireRole="admin">
+                <AppLayout>
+                  <AdminMinhaConta />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
