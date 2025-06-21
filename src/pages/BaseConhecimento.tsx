@@ -38,7 +38,7 @@ export default function BaseConhecimento() {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 

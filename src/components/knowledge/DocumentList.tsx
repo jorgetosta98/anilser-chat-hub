@@ -46,7 +46,7 @@ export function DocumentList({
                          doc.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (doc.summary?.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = !selectedCategory || doc.category_id === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || !selectedCategory || doc.category_id === selectedCategory;
     
     return matchesSearch && matchesCategory;
   });
@@ -68,10 +68,10 @@ export function DocumentList({
           <div className="text-center py-8">
             <File className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">
-              {searchTerm || selectedCategory ? "Nenhum documento encontrado" : "Nenhum documento cadastrado"}
+              {searchTerm || (selectedCategory !== "all" && selectedCategory) ? "Nenhum documento encontrado" : "Nenhum documento cadastrado"}
             </p>
             <p className="text-sm text-gray-400">
-              {searchTerm || selectedCategory ? "Tente ajustar os filtros" : "Crie seu primeiro documento para começar"}
+              {searchTerm || (selectedCategory !== "all" && selectedCategory) ? "Tente ajustar os filtros" : "Crie seu primeiro documento para começar"}
             </p>
           </div>
         ) : (
