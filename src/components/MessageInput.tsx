@@ -89,15 +89,12 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
             onValueChange={handleKnowledgeBaseChange}
           >
             <SelectTrigger className="w-64 h-10">
-              <SelectValue />
+              <SelectValue placeholder="Base de Conhecimento" />
             </SelectTrigger>
             <SelectContent>
               {knowledgeBases.map((kb) => (
                 <SelectItem key={kb.id} value={kb.id}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{kb.name}</span>
-                    <span className="text-xs text-gray-500">{kb.description}</span>
-                  </div>
+                  {kb.name}
                 </SelectItem>
               ))}
             </SelectContent>

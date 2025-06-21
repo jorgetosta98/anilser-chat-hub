@@ -13,12 +13,12 @@ export const KNOWLEDGE_BASES: KnowledgeBase[] = [
   {
     id: 'normal',
     name: 'Documentos e informações',
-    description: 'Documentos e informações gerais sobre segurança do trabalho'
+    description: ''
   },
   {
     id: 'whatsapp',
     name: 'WhatsApp',
-    description: 'Conversas e histórico do WhatsApp'
+    description: ''
   }
 ];
 
