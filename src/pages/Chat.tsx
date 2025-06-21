@@ -42,18 +42,26 @@ export default function Chat() {
 
   if (isViewingChat) {
     return (
-      <div className="flex-1 flex flex-col h-screen bg-gray-50">
-        <ChatInterface messages={chatMessages} />
-        <MessageInput onSendMessage={handleSendMessage} isViewingChat={true} />
+      <div className="flex flex-col h-screen bg-gray-50">
+        <div className="flex-1 overflow-hidden">
+          <ChatInterface messages={chatMessages} />
+        </div>
+        <div className="flex-shrink-0">
+          <MessageInput onSendMessage={handleSendMessage} isViewingChat={true} />
+        </div>
       </div>
     );
   }
 
   // Default chat interface (welcome screen)
   return (
-    <div className="flex-1 flex flex-col h-screen bg-gray-50">
-      <ChatWelcomeScreen />
-      <MessageInput onSendMessage={handleSendMessage} />
+    <div className="flex flex-col h-screen bg-gray-50">
+      <div className="flex-1 overflow-hidden">
+        <ChatWelcomeScreen />
+      </div>
+      <div className="flex-shrink-0">
+        <MessageInput onSendMessage={handleSendMessage} />
+      </div>
     </div>
   );
 }
