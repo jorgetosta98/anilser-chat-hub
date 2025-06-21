@@ -1,9 +1,10 @@
 
 import { useState } from "react";
-import { Upload, File, Trash2, Eye } from "lucide-react";
+import { Upload, File, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { DocumentFormModal } from "@/components/client/modals/DocumentFormModal";
 
 interface UploadedFile {
   id: string;
@@ -11,10 +12,15 @@ interface UploadedFile {
   size: number;
   type: string;
   uploadDate: string;
+  description?: string;
+  category?: string;
+  tags?: string[];
 }
 
 export default function BaseConhecimento() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<any>(null);
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +56,33 @@ export default function BaseConhecimento() {
     });
   };
 
+  const handleSaveDocument = (documentData: any) => {
+    const newDocument: UploadedFile = {
+      id: documentData.id || Math.random().toString(36).substr(2, 9),
+      name: documentData.name,
+      size: documentData.file?.size || 0,
+      type: documentData.file?.type || 'text/plain',
+      uploadDate: new Date().toLocaleDateString('pt-BR'),
+      description: documentData.description,
+      category: documentData.category,
+      tags: documentData.tags
+    };
+
+    if (editingDocument) {
+      setUploadedFiles(prev => prev.map(file => 
+        file.id === editingDocument.id ? newDocument : file
+      ));
+    } else {
+      setUploadedFiles(prev => [...prev, newDocument]);
+    }
+    setEditingDocument(null);
+  };
+
+  const openCreateModal = () => {
+    setEditingDocument(null);
+    setIsDocumentModalOpen(true);
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -61,11 +94,17 @@ export default function BaseConhecimento() {
   return (
     <div className="flex-1 p-8 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Base de Conhecimento</h1>
-          <p className="text-gray-600">
-            Faça upload de documentos para fornecer contexto à IA e melhorar a precisão das respostas
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Base de Conhecimento</h1>
+            <p className="text-gray-600">
+              Faça upload de documentos para fornecer contexto à IA e melhorar a precisão das respostas
+            </p>
+          </div>
+          <Button onClick={openCreateModal}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Documento
+          </Button>
         </div>
 
         {/* Upload Area */}
@@ -133,6 +172,18 @@ export default function BaseConhecimento() {
                         <p className="text-sm text-gray-500">
                           {formatFileSize(file.size)} • Enviado em {file.uploadDate}
                         </p>
+                        {file.description && (
+                          <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                        )}
+                        {file.tags && file.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {file.tags.map((tag, index) => (
+                              <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -154,6 +205,13 @@ export default function BaseConhecimento() {
             )}
           </CardContent>
         </Card>
+
+        <DocumentFormModal
+          isOpen={isDocumentModalOpen}
+          onClose={() => setIsDocumentModalOpen(false)}
+          document={editingDocument}
+          onSave={handleSaveDocument}
+        />
       </div>
     </div>
   );

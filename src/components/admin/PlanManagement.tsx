@@ -8,16 +8,42 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Save, Plus, MessageSquare, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import { Plan, DEFAULT_PLANS } from "@/types/plans";
+import { PlanFormModal } from "./modals/PlanFormModal";
 
 export function PlanManagement() {
   const [plans, setPlans] = useState<Plan[]>(DEFAULT_PLANS);
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [editingPlanData, setEditingPlanData] = useState<Plan | null>(null);
 
   const handleSavePlan = (planId: string, updatedPlan: Partial<Plan>) => {
     setPlans(prev => prev.map(plan => 
       plan.id === planId ? { ...plan, ...updatedPlan } : plan
     ));
     setEditingPlan(null);
+  };
+
+  const handleSavePlanFromModal = (planData: Plan) => {
+    if (editingPlanData?.id) {
+      // Editing existing plan
+      setPlans(prev => prev.map(plan => 
+        plan.id === editingPlanData.id ? planData : plan
+      ));
+    } else {
+      // Creating new plan
+      setPlans(prev => [...prev, planData]);
+    }
+    setEditingPlanData(null);
+  };
+
+  const openEditModal = (plan: Plan) => {
+    setEditingPlanData(plan);
+    setIsPlanModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setEditingPlanData(null);
+    setIsPlanModalOpen(true);
   };
 
   const formatWhatsAppLimit = (limit: number | 'unlimited') => {
@@ -31,7 +57,7 @@ export function PlanManagement() {
           <h2 className="text-2xl font-bold">Gerenciamento de Planos</h2>
           <p className="text-muted-foreground">Configure os planos disponíveis e seus limites</p>
         </div>
-        <Button>
+        <Button onClick={openCreateModal}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Plano
         </Button>
@@ -68,17 +94,22 @@ export function PlanManagement() {
                     )}
                   </CardDescription>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditingPlan(editingPlan === plan.id ? null : plan.id)}
-                >
-                  {editingPlan === plan.id ? (
-                    <Save className="w-4 h-4" />
-                  ) : (
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEditModal(plan)}
+                  >
                     <Edit className="w-4 h-4" />
-                  )}
-                </Button>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingPlan(editingPlan === plan.id ? null : plan.id)}
+                  >
+                    <Save className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -150,6 +181,13 @@ export function PlanManagement() {
           </Card>
         ))}
       </div>
+
+      <PlanFormModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        plan={editingPlanData || undefined}
+        onSave={handleSavePlanFromModal}
+      />
     </div>
   );
 }

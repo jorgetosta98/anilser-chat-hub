@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Search, UserPlus, MoreHorizontal, Ban, CheckCircle, Trash2, Edit } from "lucide-react";
 import { useState } from "react";
 import { DEFAULT_PLANS } from "@/types/plans";
+import { UserFormModal } from "./modals/UserFormModal";
 
 // Mock data expandido - em um app real viria de uma API
 const mockUsers = [
@@ -65,6 +65,8 @@ const mockUsers = [
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState(mockUsers);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,6 +120,37 @@ export function UserManagement() {
     ));
   };
 
+  const handleSaveUser = (userData: any) => {
+    if (userData.id) {
+      // Editing existing user
+      setUsers(prev => prev.map(user => 
+        user.id === userData.id ? { ...user, ...userData } : user
+      ));
+    } else {
+      // Creating new user
+      const newUser = {
+        ...userData,
+        id: Math.max(...users.map(u => u.id)) + 1,
+        lastLogin: "Nunca",
+        conversations: 0,
+        questionsUsed: 0,
+        whatsappConnections: 0
+      };
+      setUsers(prev => [...prev, newUser]);
+    }
+    setEditingUser(null);
+  };
+
+  const openEditModal = (user: any) => {
+    setEditingUser(user);
+    setIsUserModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setEditingUser(null);
+    setIsUserModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -129,7 +162,7 @@ export function UserManagement() {
                 Gerencie usuários do sistema, permissões, planos e status
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={openCreateModal}>
               <UserPlus className="w-4 h-4 mr-2" />
               Novo Usuário
             </Button>
@@ -177,6 +210,14 @@ export function UserManagement() {
                     <TableCell>{user.lastLogin}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(user)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        
                         <Select
                           value={user.plan}
                           onValueChange={(value) => handleChangePlan(user.id, value)}
@@ -292,6 +333,13 @@ export function UserManagement() {
           </CardContent>
         </Card>
       </div>
+
+      <UserFormModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        user={editingUser}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 }
