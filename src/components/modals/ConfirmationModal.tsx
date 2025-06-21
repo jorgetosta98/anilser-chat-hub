@@ -10,6 +10,7 @@ interface ConfirmationModalProps {
   confirmText?: string;
   cancelText?: string;
   isDestructive?: boolean;
+  children?: React.ReactNode;
 }
 
 export function ConfirmationModal({
@@ -20,15 +21,17 @@ export function ConfirmationModal({
   description,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
-  isDestructive = false
+  isDestructive = false,
+  children
 }: ConfirmationModalProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
+        {children}
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>{cancelText}</AlertDialogCancel>
           <AlertDialogAction
