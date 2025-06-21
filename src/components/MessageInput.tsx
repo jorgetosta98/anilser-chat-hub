@@ -8,7 +8,7 @@ import { useMessages } from "@/hooks/useMessages";
 import { useAI } from "@/hooks/useAI";
 import { useConversations } from "@/hooks/useConversations";
 import { useNavigate } from "react-router-dom";
-import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
+import { useKnowledgeBase, KnowledgeBaseType } from "@/hooks/useKnowledgeBase";
 
 interface MessageInputProps {
   conversationId: string | null;
@@ -74,6 +74,10 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     }
   };
 
+  const handleKnowledgeBaseChange = (value: string) => {
+    setSelectedKnowledgeBase(value as KnowledgeBaseType);
+  };
+
   const isLoading = isAddingMessage || isGenerating;
 
   return (
@@ -86,7 +90,7 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
             <span className="text-sm font-medium text-gray-700">Base de Conhecimento:</span>
             <Select 
               value={selectedKnowledgeBase} 
-              onValueChange={setSelectedKnowledgeBase}
+              onValueChange={handleKnowledgeBaseChange}
             >
               <SelectTrigger className="w-64 h-8">
                 <SelectValue />
