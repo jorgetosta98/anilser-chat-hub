@@ -99,6 +99,11 @@ const App = () => (
               <Admin />
             </AppLayout>
           } />
+          <Route path="/admin/plans" element={
+            <AppLayout>
+              <Admin />
+            </AppLayout>
+          } />
           <Route path="/admin/minha-conta" element={
             <AppLayout>
               <AdminMinhaConta />

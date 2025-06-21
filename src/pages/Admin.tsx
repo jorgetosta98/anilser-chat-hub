@@ -4,6 +4,7 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { ConversationMonitoring } from "@/components/admin/ConversationMonitoring";
 import { SystemSettings } from "@/components/admin/SystemSettings";
+import { PlanManagement } from "@/components/admin/PlanManagement";
 import { Shield } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
@@ -15,6 +16,7 @@ export default function Admin() {
     if (location.pathname === '/admin/users') return <UserManagement />;
     if (location.pathname === '/admin/conversations') return <ConversationMonitoring />;
     if (location.pathname === '/admin/settings') return <SystemSettings />;
+    if (location.pathname === '/admin/plans') return <PlanManagement />;
     return <AdminDashboard />;
   };
 
@@ -22,6 +24,7 @@ export default function Admin() {
     if (location.pathname === '/admin/users') return 'Gerenciamento de Usuários';
     if (location.pathname === '/admin/conversations') return 'Monitoramento de Conversas';
     if (location.pathname === '/admin/settings') return 'Configurações do Sistema';
+    if (location.pathname === '/admin/plans') return 'Gerenciamento de Planos';
     return 'Dashboard';
   };
 
