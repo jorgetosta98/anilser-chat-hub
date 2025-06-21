@@ -49,7 +49,8 @@ export function usePersonalization() {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      // Using any type temporarily until Supabase types are regenerated
+      const { data, error } = await (supabase as any)
         .from('user_personalization')
         .select('*')
         .eq('user_id', user.id)
@@ -201,7 +202,8 @@ export function usePersonalization() {
     }
 
     try {
-      const { error } = await supabase
+      // Using any type temporarily until Supabase types are regenerated
+      const { error } = await (supabase as any)
         .from('user_personalization')
         .upsert({
           user_id: user.id,
@@ -239,7 +241,7 @@ export function usePersonalization() {
   const resetToDefault = async () => {
     if (user) {
       try {
-        await supabase
+        await (supabase as any)
           .from('user_personalization')
           .delete()
           .eq('user_id', user.id);
