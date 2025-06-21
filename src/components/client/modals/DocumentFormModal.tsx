@@ -112,7 +112,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
       ...prev,
       file: file,
       file_type: file.type,
-      content: "" // Limpar conteúdo quando arquivo é carregado
+      content: "" 
     }));
   };
 
@@ -135,7 +135,6 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
 
     if (error) throw error;
 
-    // Obter URL pública do arquivo
     const { data: urlData } = supabase.storage
       .from('knowledge-documents')
       .getPublicUrl(fileName);
@@ -158,7 +157,6 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
     setIsLoading(true);
 
     try {
-      // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
@@ -168,7 +166,6 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
       let fileUrl = formData.file_url;
       let fileType = formData.file_type;
 
-      // Upload do arquivo se necessário
       if (uploadedFile) {
         setIsUploading(true);
         fileUrl = await uploadFileToStorage(uploadedFile);
@@ -189,7 +186,6 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
       };
 
       if (document?.id) {
-        // Update existing document
         const { error } = await supabase
           .from('knowledge_documents')
           .update(documentData)
@@ -202,7 +198,6 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
           description: "O documento foi atualizado com sucesso.",
         });
       } else {
-        // Create new document
         const { error } = await supabase
           .from('knowledge_documents')
           .insert([documentData]);
@@ -234,44 +229,53 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {document ? "Editar Documento" : "Novo Documento"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <DocumentFormFields
-            title={formData.title}
-            summary={formData.summary}
-            content={formData.content}
-            context={formData.context}
-            categoryId={formData.category_id}
-            isPublic={formData.is_public}
-            categories={categories}
-            hasFile={hasUploadedFile}
-            onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
-            onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
-            onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-            onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
-            onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-            onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
-          />
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+            {/* Coluna Esquerda */}
+            <div className="space-y-4 overflow-y-auto pr-2">
+              <DocumentFormFields
+                title={formData.title}
+                summary={formData.summary}
+                content={formData.content}
+                context={formData.context}
+                categoryId={formData.category_id}
+                isPublic={formData.is_public}
+                categories={categories}
+                hasFile={hasUploadedFile}
+                onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+                onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
+                onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
+                onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
+              />
+            </div>
 
-          <DocumentFileUpload
-            uploadedFile={uploadedFile}
-            existingFileUrl={formData.file_url}
-            onFileSelect={handleFileSelect}
-            onFileRemove={handleFileRemove}
-          />
+            {/* Coluna Direita */}
+            <div className="space-y-4 overflow-y-auto pr-2">
+              <DocumentFileUpload
+                uploadedFile={uploadedFile}
+                existingFileUrl={formData.file_url}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+              />
 
-          <DocumentTagsInput
-            tags={formData.tags}
-            onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
-          />
+              <DocumentTagsInput
+                tags={formData.tags}
+                onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+              />
+            </div>
+          </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          {/* Rodapé com botões */}
+          <div className="flex justify-end space-x-2 pt-4 border-t flex-shrink-0">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

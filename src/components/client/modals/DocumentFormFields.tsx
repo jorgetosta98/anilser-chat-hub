@@ -46,68 +46,69 @@ export function DocumentFormFields({
   return (
     <>
       <div>
-        <Label htmlFor="title">Título *</Label>
+        <Label htmlFor="title" className="text-sm font-medium">Título *</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Digite o título do documento"
           required
+          className="mt-1"
         />
       </div>
 
-      <div>
-        <Label htmlFor="summary">Resumo</Label>
-        <Input
-          id="summary"
-          value={summary}
-          onChange={(e) => onSummaryChange(e.target.value)}
-          placeholder="Breve resumo do documento"
-        />
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="summary" className="text-sm font-medium">Resumo</Label>
+          <Input
+            id="summary"
+            value={summary}
+            onChange={(e) => onSummaryChange(e.target.value)}
+            placeholder="Breve resumo"
+            className="mt-1"
+          />
+        </div>
 
-      <div>
-        <Label htmlFor="category">Categoria</Label>
-        <Select
-          value={categoryId}
-          onValueChange={onCategoryChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione uma categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div>
+          <Label htmlFor="category" className="text-sm font-medium">Categoria</Label>
+          <Select value={categoryId} onValueChange={onCategoryChange}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Selecione uma categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {hasFile ? (
         <div>
-          <Label htmlFor="context">Contexto</Label>
+          <Label htmlFor="context" className="text-sm font-medium">Contexto</Label>
           <Textarea
             id="context"
             value={context}
             onChange={(e) => onContextChange(e.target.value)}
             placeholder="Adicione contexto adicional sobre o documento (opcional)"
-            className="min-h-[100px]"
+            className="min-h-[120px] mt-1"
           />
           <p className="text-xs text-gray-500 mt-1">
-            O conteúdo será extraído automaticamente do arquivo. Use este campo para adicionar contexto adicional.
+            O conteúdo será extraído automaticamente do arquivo.
           </p>
         </div>
       ) : (
         <div>
-          <Label htmlFor="content">Conteúdo *</Label>
+          <Label htmlFor="content" className="text-sm font-medium">Conteúdo *</Label>
           <Textarea
             id="content"
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
             placeholder="Digite o conteúdo do documento"
-            className="min-h-[200px]"
+            className="min-h-[200px] mt-1"
             required
           />
         </div>
@@ -119,8 +120,9 @@ export function DocumentFormFields({
           id="is_public"
           checked={isPublic}
           onChange={(e) => onPublicChange(e.target.checked)}
+          className="rounded"
         />
-        <Label htmlFor="is_public">Documento público</Label>
+        <Label htmlFor="is_public" className="text-sm font-medium">Documento público</Label>
       </div>
     </>
   );
