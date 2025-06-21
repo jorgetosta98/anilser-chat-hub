@@ -113,6 +113,7 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          user_id: string
           views_count: number | null
         }
         Insert: {
@@ -129,6 +130,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          user_id: string
           views_count?: number | null
         }
         Update: {
@@ -145,6 +147,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string
           views_count?: number | null
         }
         Relationships: [
@@ -280,6 +283,47 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_frequent_questions: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          is_positive: boolean | null
+          question: string
+          rating: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_positive?: boolean | null
+          question: string
+          rating?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_positive?: boolean | null
+          question?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_frequent_questions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]

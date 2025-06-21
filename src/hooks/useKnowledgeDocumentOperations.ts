@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface KnowledgeDocument {
   id: string;
@@ -17,6 +18,7 @@ export interface KnowledgeDocument {
   file_type?: string;
   is_public: boolean;
   views_count: number;
+  user_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -47,8 +49,11 @@ interface UpdateDocumentData {
 
 export function useKnowledgeDocumentOperations() {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const searchDocuments = async (query: string) => {
+    if (!user) return [];
+
     try {
       const { data, error } = await supabase
         .from('knowledge_documents')
@@ -56,8 +61,8 @@ export function useKnowledgeDocumentOperations() {
           *,
           category:knowledge_categories(name, color)
         `)
+        .eq('user_id', user.id)
         .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
-        .eq('is_public', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -69,6 +74,15 @@ export function useKnowledgeDocumentOperations() {
   };
 
   const createDocument = async (documentData: CreateDocumentData) => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para criar documentos.",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
     try {
       const { data, error } = await supabase
         .from('knowledge_documents')
@@ -81,6 +95,7 @@ export function useKnowledgeDocumentOperations() {
           file_url: documentData.file_url || null,
           file_type: documentData.file_type || null,
           is_public: documentData.is_public ?? true,
+          user_id: user.id,
         }])
         .select()
         .single();

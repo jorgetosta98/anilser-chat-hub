@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SearchResult {
   id: string;
@@ -19,15 +20,16 @@ interface SearchResult {
 export function useSmartSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const performSmartSearch = async (query: string): Promise<SearchResult[]> => {
-    if (!query.trim()) return [];
+    if (!query.trim() || !user) return [];
     
     setIsSearching(true);
     
     try {
       const { data, error } = await supabase.functions.invoke('smart-search', {
-        body: { query }
+        body: { query, userId: user.id }
       });
 
       if (error) throw error;
@@ -49,6 +51,8 @@ export function useSmartSearch() {
   };
 
   const performFallbackSearch = async (query: string): Promise<SearchResult[]> => {
+    if (!user) return [];
+
     try {
       const { data, error } = await supabase
         .from('knowledge_documents')
@@ -60,8 +64,8 @@ export function useSmartSearch() {
           tags,
           category:knowledge_categories(name, color)
         `)
+        .eq('user_id', user.id)
         .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
-        .eq('is_public', true)
         .limit(10);
 
       if (error) throw error;

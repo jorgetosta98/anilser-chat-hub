@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { useKnowledgeCategories } from './useKnowledgeCategories';
 import { useKnowledgeDocumentOperations, type KnowledgeDocument } from './useKnowledgeDocumentOperations';
 
@@ -13,12 +14,19 @@ export function useKnowledgeDocuments() {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Use the focused hooks
   const { categories, fetchCategories } = useKnowledgeCategories();
   const operations = useKnowledgeDocumentOperations();
 
   const fetchDocuments = async () => {
+    if (!user) {
+      setDocuments([]);
+      setIsLoading(false);
+      return [];
+    }
+
     try {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -27,6 +35,7 @@ export function useKnowledgeDocuments() {
           *,
           category:knowledge_categories(name, color)
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -66,8 +75,10 @@ export function useKnowledgeDocuments() {
   };
 
   useEffect(() => {
-    fetchDocuments();
-  }, []);
+    if (user) {
+      fetchDocuments();
+    }
+  }, [user]);
 
   return {
     documents,

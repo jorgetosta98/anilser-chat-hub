@@ -1,9 +1,11 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useConversations } from "@/hooks/useConversations";
+import { useUserFrequentQuestions } from "@/hooks/useUserFrequentQuestions";
 import { useNavigate } from "react-router-dom";
+import { MessageCircle, Heart } from "lucide-react";
 
-const frequentQuestions = [
+const defaultQuestions = [
   "Quais são os EPIs obrigatórios para trabalho em altura?",
   "Como elaborar um mapa de riscos eficiente?",
   "Qual a diferença entre acidente e incidente de trabalho?",
@@ -14,6 +16,7 @@ const frequentQuestions = [
 
 export function FrequentQuestions() {
   const { createConversation } = useConversations();
+  const { questions, isLoading } = useUserFrequentQuestions();
   const navigate = useNavigate();
 
   const handleQuestionClick = async (question: string) => {
@@ -35,11 +38,52 @@ export function FrequentQuestions() {
     }
   };
 
+  // Show user's personal questions if they have any, otherwise show default questions
+  const questionsToShow = questions.length > 0 ? questions.map(q => q.question) : defaultQuestions;
+  const showPersonalQuestions = questions.length > 0;
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Perguntas Frequentes</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="border-gray-200">
+              <CardContent className="p-4">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Perguntas Frequentes</h2>
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">
+          {showPersonalQuestions ? "Suas Perguntas Favoritas" : "Perguntas Frequentes"}
+        </h2>
+        {showPersonalQuestions && (
+          <Heart className="w-5 h-5 text-red-500 fill-current" />
+        )}
+      </div>
+      
+      {!showPersonalQuestions && questions.length === 0 && (
+        <div className="text-center mb-4 p-4 bg-blue-50 rounded-lg">
+          <MessageCircle className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">
+            Suas perguntas mais curtidas aparecerão aqui! Continue conversando e avalie positivamente suas perguntas favoritas.
+          </p>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {frequentQuestions.map((question, index) => (
+        {questionsToShow.map((question, index) => (
           <Card 
             key={index}
             className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 hover:border-primary"
@@ -47,6 +91,12 @@ export function FrequentQuestions() {
           >
             <CardContent className="p-4">
               <p className="text-gray-700 text-sm">{question}</p>
+              {showPersonalQuestions && (
+                <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+                  <Heart className="w-3 h-3 text-red-500 fill-current" />
+                  <span>Pergunta favorita</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
