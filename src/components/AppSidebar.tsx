@@ -1,5 +1,4 @@
-
-import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings } from "lucide-react";
+import { MessageSquare, Plus, BarChart3, Link, User, LogOut, FileText, Palette, Shield, Users, Settings, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
@@ -58,6 +57,10 @@ const adminTopMenuItems = [{
   title: "Conversas",
   icon: MessageSquare,
   path: "/admin/conversations"
+}, {
+  title: "Planos",
+  icon: CreditCard,
+  path: "/admin/plans"
 }];
 
 const adminBottomMenuItems = [{
