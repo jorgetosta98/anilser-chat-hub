@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoginHeader } from "./LoginHeader";
 import { EmailField } from "./EmailField";
 import { PasswordField } from "./PasswordField";
+import { RememberMeField } from "./RememberMeField";
 import { LoginActions } from "./LoginActions";
 import { LoginFooter } from "./LoginFooter";
 
@@ -137,6 +138,11 @@ export function LoginForm() {
           value={formData.password}
           onChange={(value) => handleInputChange('password', value)}
           error={errors.password}
+        />
+
+        <RememberMeField 
+          checked={formData.rememberMe}
+          onChange={(checked) => handleInputChange('rememberMe', checked)}
         />
 
         <LoginActions 
