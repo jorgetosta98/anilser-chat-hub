@@ -4,10 +4,10 @@ export function LoginHeader() {
     <>
       {/* Logo */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center mb-4">
+        <div className="inline-flex items-center justify-center mb-8">
           <img 
             src="/lovable-uploads/f742fb87-1258-499b-8a89-f5697f8bb611.png" 
-            alt="ZapBase Logo" 
+            alt="Logo" 
             className="h-12 w-auto"
           />
         </div>
