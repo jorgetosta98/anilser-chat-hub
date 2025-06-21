@@ -9,6 +9,7 @@ import { usePersonalization } from "@/hooks/usePersonalization";
 import { LogoUploader } from "@/components/personalization/LogoUploader";
 import { ThemePreview } from "@/components/personalization/ThemePreview";
 import { ColorPreview } from "@/components/personalization/ColorPreview";
+import { Loader2 } from "lucide-react";
 
 const colorPresets = [
   { name: "Verde Safeboy", primary: "#0d9488", secondary: "#14b8a6" },
@@ -20,7 +21,18 @@ const colorPresets = [
 ];
 
 export default function Personalizacao() {
-  const { settings, updateSettings, saveSettings, resetToDefault } = usePersonalization();
+  const { settings, loading, updateSettings, saveSettings, resetToDefault, uploadLogo } = usePersonalization();
+
+  if (loading) {
+    return (
+      <div className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleColorPresetSelect = (preset: typeof colorPresets[0]) => {
     updateSettings({ selectedColor: preset });
@@ -37,13 +49,13 @@ export default function Personalizacao() {
   };
 
   return (
-    <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+    <div className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Personalização</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Personalização</h1>
+              <p className="text-gray-600 dark:text-gray-400">
                 Customize a aparência do aplicativo de acordo com sua marca
               </p>
             </div>
@@ -56,13 +68,13 @@ export default function Personalizacao() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Logo Customization */}
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
                 <Upload className="w-5 h-5" />
                 <span>Logo da Empresa</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Faça upload do seu logo (máx. 2MB, PNG/JPG recomendado)
               </CardDescription>
             </CardHeader>
@@ -70,18 +82,19 @@ export default function Personalizacao() {
               <LogoUploader
                 currentLogo={settings.customLogo}
                 onLogoChange={(logo) => updateSettings({ customLogo: logo })}
+                uploadLogo={uploadLogo}
               />
             </CardContent>
           </Card>
 
           {/* Theme Settings */}
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
                 <Sun className="w-5 h-5" />
                 <span>Tema</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Escolha entre modo claro ou escuro
               </CardDescription>
             </CardHeader>
@@ -89,7 +102,7 @@ export default function Personalizacao() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Sun className="w-4 h-4" />
-                  <Label htmlFor="dark-mode">Modo Escuro</Label>
+                  <Label htmlFor="dark-mode" className="dark:text-gray-300">Modo Escuro</Label>
                   <Moon className="w-4 h-4" />
                 </div>
                 <Switch
@@ -103,28 +116,28 @@ export default function Personalizacao() {
           </Card>
 
           {/* Color Customization */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
                 <Palette className="w-5 h-5" />
                 <span>Cores do Sistema</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-400">
                 Selecione as cores que representam sua marca
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="text-base font-medium mb-4 block">Presets de Cores</Label>
+                <Label className="text-base font-medium mb-4 block dark:text-gray-300">Presets de Cores</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {colorPresets.map((preset) => (
                     <div
                       key={preset.name}
                       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                         settings.selectedColor.name === preset.name
-                          ? 'border-gray-400 shadow-md'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                          ? 'border-gray-400 dark:border-gray-500 shadow-md'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      } bg-white dark:bg-gray-700`}
                       onClick={() => handleColorPresetSelect(preset)}
                     >
                       <div className="flex items-center space-x-3">
@@ -137,7 +150,7 @@ export default function Personalizacao() {
                           style={{ backgroundColor: preset.secondary }}
                         />
                       </div>
-                      <p className="text-sm font-medium mt-2">{preset.name}</p>
+                      <p className="text-sm font-medium mt-2 dark:text-gray-300">{preset.name}</p>
                     </div>
                   ))}
                 </div>
@@ -145,38 +158,38 @@ export default function Personalizacao() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="primary-color">Cor Primária</Label>
+                  <Label htmlFor="primary-color" className="dark:text-gray-300">Cor Primária</Label>
                   <div className="flex space-x-2 mt-1">
                     <Input
                       type="color"
                       id="primary-color"
                       value={settings.selectedColor.primary}
                       onChange={(e) => handleCustomColorChange('primary', e.target.value)}
-                      className="w-16 h-10 p-1 border"
+                      className="w-16 h-10 p-1 border dark:bg-gray-700 dark:border-gray-600"
                     />
                     <Input
                       type="text"
                       value={settings.selectedColor.primary}
                       onChange={(e) => handleCustomColorChange('primary', e.target.value)}
-                      className="flex-1"
+                      className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="secondary-color">Cor Secundária</Label>
+                  <Label htmlFor="secondary-color" className="dark:text-gray-300">Cor Secundária</Label>
                   <div className="flex space-x-2 mt-1">
                     <Input
                       type="color"
                       id="secondary-color"
                       value={settings.selectedColor.secondary}
                       onChange={(e) => handleCustomColorChange('secondary', e.target.value)}
-                      className="w-16 h-10 p-1 border"
+                      className="w-16 h-10 p-1 border dark:bg-gray-700 dark:border-gray-600"
                     />
                     <Input
                       type="text"
                       value={settings.selectedColor.secondary}
                       onChange={(e) => handleCustomColorChange('secondary', e.target.value)}
-                      className="flex-1"
+                      className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
