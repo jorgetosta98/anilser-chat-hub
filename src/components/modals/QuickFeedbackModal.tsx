@@ -1,138 +1,155 @@
 
 import { useState } from "react";
+import { Star, ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { useMessageRating } from "@/hooks/useMessageRating";
 
 interface QuickFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  lastMessage?: string;
   conversationId?: string;
+  lastMessage?: string;
 }
 
 export function QuickFeedbackModal({ 
   isOpen, 
   onClose, 
-  lastMessage, 
-  conversationId 
+  conversationId,
+  lastMessage 
 }: QuickFeedbackModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [rating, setRating] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [step, setStep] = useState<'rating' | 'feedback'>('rating');
+  const { submitRating, isSubmitting } = useMessageRating();
 
-  const getPersonalizedQuestion = (message?: string) => {
-    if (!message || message.length < 10) {
-      return "Como podemos melhorar sua experiência?";
+  const handleRatingSelect = (selectedRating: number) => {
+    setRating(selectedRating);
+    if (selectedRating <= 3) {
+      setStep('feedback');
+    } else {
+      handleSubmit(selectedRating);
     }
-    
-    // Extrair palavras-chave da mensagem para personalizar
-    const keywords = message.toLowerCase();
-    
-    if (keywords.includes("como fazer") || keywords.includes("como") || keywords.includes("receita")) {
-      return "Conseguimos resolver sua dúvida?";
-    } else if (keywords.includes("calcular") || keywords.includes("cálculo")) {
-      return "O cálculo apresentado foi útil?";
-    } else if (keywords.includes("norma") || keywords.includes("regulamento")) {
-      return "As informações sobre normas foram esclarecedoras?";
-    } else if (keywords.includes("documento") || keywords.includes("elaborar")) {
-      return "O documento elaborado atendeu suas expectativas?";
-    }
-    
-    return "Essa conversa foi produtiva?";
   };
 
-  const handleFeedback = async (isPositive: boolean) => {
-    // Se não há conversationId, apenas fechamos o modal sem salvar
-    if (!conversationId) {
-      toast({
-        title: "Obrigado pelo feedback!",
-        description: "Sua opinião é importante para nós."
-      });
-      onClose();
-      return;
-    }
+  const handleSubmit = async (finalRating: number = rating!) => {
+    if (!conversationId || !lastMessage) return;
 
-    setIsSubmitting(true);
+    await submitRating(conversationId, lastMessage, finalRating, feedback);
     
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("Usuário não autenticado");
-      }
+    // Reset state
+    setRating(null);
+    setFeedback("");
+    setStep('rating');
+    onClose();
+  };
 
-      const { error } = await supabase
-        .from("conversation_ratings")
-        .insert({
-          conversation_id: conversationId,
-          user_id: user.id,
-          rating: isPositive ? 5 : 1, // Positive = 5, Negative = 1
-          feedback: isPositive ? "Positivo" : "Negativo" // Simple feedback
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Obrigado pelo feedback!",
-        description: "Sua avaliação nos ajuda a melhorar."
-      });
-
-      onClose();
-    } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar seu feedback. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSkip = () => {
+    setRating(null);
+    setFeedback("");
+    setStep('rating');
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center text-lg">
-            {getPersonalizedQuestion(lastMessage)}
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-primary" />
+            Como foi nossa conversa?
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="flex justify-center space-x-8 py-6">
-          <Button
-            onClick={() => handleFeedback(true)}
-            disabled={isSubmitting}
-            variant="ghost"
-            className="flex flex-col items-center p-6 hover:bg-green-50 hover:text-green-600 transition-colors"
-          >
-            <ThumbsUp className="w-12 h-12 mb-2" />
-            <span>Sim</span>
-          </Button>
-          
-          <Button
-            onClick={() => handleFeedback(false)}
-            disabled={isSubmitting}
-            variant="ghost"
-            className="flex flex-col items-center p-6 hover:bg-red-50 hover:text-red-600 transition-colors"
-          >
-            <ThumbsDown className="w-12 h-12 mb-2" />
-            <span>Não</span>
-          </Button>
-        </div>
 
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            className="text-sm"
-            disabled={isSubmitting}
-          >
-            Pular avaliação
-          </Button>
-        </div>
+        {step === 'rating' && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">
+                Avalie sua experiência para nos ajudar a melhorar
+              </p>
+              
+              {/* Star Rating */}
+              <div className="flex justify-center gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Button
+                    key={star}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRatingSelect(star)}
+                    className="p-1 hover:bg-primary/10"
+                  >
+                    <Star 
+                      className={`w-8 h-8 ${
+                        rating && rating >= star 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  </Button>
+                ))}
+              </div>
+
+              {/* Quick thumbs */}
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleRatingSelect(2)}
+                  className="flex items-center gap-2"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  Não ajudou
+                </Button>
+                <Button
+                  onClick={() => handleRatingSelect(5)}
+                  className="flex items-center gap-2"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  Muito útil!
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <Button variant="ghost" onClick={handleSkip}>
+                Pular avaliação
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 'feedback' && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">
+                Conte-nos como podemos melhorar sua experiência
+              </p>
+            </div>
+
+            <Textarea
+              placeholder="Seu feedback é muito importante para nós..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
+            />
+
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => handleSubmit()}
+                disabled={isSubmitting}
+              >
+                Pular
+              </Button>
+              <Button 
+                onClick={() => handleSubmit()}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Enviando...' : 'Enviar Feedback'}
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
