@@ -1,11 +1,10 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ArrowRight, Smartphone } from "lucide-react";
 
 export default function Conexoes() {
   return (
-    <div className="flex-1 p-6 bg-gray-50">
+    <div className="flex-1 p-6" style={{ backgroundColor: '#F9FAFB' }}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">Conexões</h1>
         
