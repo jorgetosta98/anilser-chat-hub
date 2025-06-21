@@ -35,10 +35,6 @@ const regularBottomMenuItems = [{
   icon: BarChart3,
   path: "/relatorios"
 }, {
-  title: "Admin",
-  icon: Shield,
-  path: "/admin"
-}, {
   title: "Minha Conta",
   icon: User,
   path: "/minha-conta"
@@ -50,7 +46,7 @@ const regularBottomMenuItems = [{
   action: "logout"
 }];
 
-const adminMenuItems = [{
+const adminTopMenuItems = [{
   title: "Dashboard",
   icon: BarChart3,
   path: "/admin"
@@ -62,7 +58,9 @@ const adminMenuItems = [{
   title: "Conversas",
   icon: MessageSquare,
   path: "/admin/conversations"
-}, {
+}];
+
+const adminBottomMenuItems = [{
   title: "Configurações",
   icon: Settings,
   path: "/admin/settings"
@@ -115,14 +113,28 @@ export function AppSidebar() {
       {isAdminArea ? (
         // Admin Menu
         <div className="flex-1 flex flex-col">
-          <div className="p-4 space-y-2">
-            {adminMenuItems.map(item => (
+          {/* Top Menu Items */}
+          <div className="p-4 space-y-2 border-b border-sidebar-border">
+            {adminTopMenuItems.map(item => (
               <SidebarMenuItem
                 key={item.title}
                 item={item}
                 isCollapsed={isCollapsed}
               />
             ))}
+          </div>
+
+          {/* Bottom Menu Items */}
+          <div className="flex-1 flex flex-col justify-end">
+            <div className="p-4 space-y-2 border-t border-sidebar-border">
+              {adminBottomMenuItems.map(item => (
+                <SidebarMenuItem
+                  key={item.title}
+                  item={item}
+                  isCollapsed={isCollapsed}
+                />
+              ))}
+            </div>
           </div>
         </div>
       ) : (
