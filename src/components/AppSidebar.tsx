@@ -18,6 +18,10 @@ const topMenuItems = [{
 }];
 
 const bottomMenuItems = [{
+  title: "Conexões",
+  icon: Link,
+  path: "/conexoes"
+}, {
   title: "Base de Conhecimento",
   icon: FileText,
   path: "/base-conhecimento"
@@ -25,10 +29,6 @@ const bottomMenuItems = [{
   title: "Personalização",
   icon: Palette,
   path: "/personalizacao"
-}, {
-  title: "Conexões",
-  icon: Link,
-  path: "/conexoes"
 }, {
   title: "Relatórios",
   icon: BarChart3,
@@ -151,9 +151,9 @@ export function AppSidebar() {
   };
 
   return (
-    <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col flex-shrink-0`}>
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col`}>
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border flex-shrink-0">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
@@ -167,35 +167,31 @@ export function AppSidebar() {
             variant="ghost" 
             size="icon" 
             onClick={() => setIsCollapsed(!isCollapsed)} 
-            className="text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
           >
             <Menu className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Menu Items */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Top Menu Items */}
-        <div className="p-4 space-y-2 flex-shrink-0">
-          {topMenuItems.map(renderMenuItem)}
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1 min-h-0" />
-
-        {/* Bottom Menu Items */}
-        <div className="p-4 space-y-2 border-t border-sidebar-border flex-shrink-0">
-          {bottomMenuItems.map(renderMenuItem)}
-        </div>
+      {/* Top Menu Items */}
+      <div className="p-4 space-y-2 border-b border-sidebar-border">
+        {topMenuItems.map(renderMenuItem)}
       </div>
 
-      {/* Footer */}
-      {!isCollapsed && (
-        <div className="p-4 border-t border-sidebar-border text-xs text-gray-500 flex-shrink-0">
-          Powered by Frotas Softwares
+      {/* Bottom Menu Items */}
+      <div className="flex-1 flex flex-col justify-end">
+        <div className="p-4 space-y-2 border-t border-sidebar-border">
+          {bottomMenuItems.map(renderMenuItem)}
         </div>
-      )}
+
+        {/* Footer */}
+        {!isCollapsed && (
+          <div className="p-4 border-t border-sidebar-border text-xs text-gray-500">
+            Powered by Frotas Softwares
+          </div>
+        )}
+      </div>
     </div>
   );
 }
