@@ -15,6 +15,9 @@ const corsHeaders = {
 // Função para buscar documentos relevantes na base de conhecimento
 async function searchKnowledgeBase(query: string, supabase: any) {
   try {
+    // Busca mais ampla usando diferentes estratégias
+    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+    
     const { data, error } = await supabase
       .from('knowledge_documents')
       .select(`
@@ -25,13 +28,14 @@ async function searchKnowledgeBase(query: string, supabase: any) {
       `)
       .eq('is_public', true)
       .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
-      .limit(5);
+      .limit(3);
 
     if (error) {
       console.error('Erro ao buscar na base de conhecimento:', error);
       return [];
     }
 
+    console.log(`Busca por "${query}" encontrou ${data?.length || 0} documentos`);
     return data || [];
   } catch (error) {
     console.error('Erro na busca da base de conhecimento:', error);
@@ -41,12 +45,16 @@ async function searchKnowledgeBase(query: string, supabase: any) {
 
 // Função para extrair palavras-chave da mensagem do usuário
 function extractKeywords(message: string): string[] {
-  const stopWords = ['o', 'a', 'os', 'as', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'como', 'que', 'qual', 'quais', 'é', 'são', 'me', 'te', 'se', 'nos', 'vos'];
-  return message
+  const stopWords = ['o', 'a', 'os', 'as', 'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'como', 'que', 'qual', 'quais', 'é', 'são', 'me', 'te', 'se', 'nos', 'vos', 'sobre', 'isso', 'essa', 'este', 'esta'];
+  
+  const words = message
     .toLowerCase()
+    .replace(/[^\w\s]/g, '') // Remove pontuação
     .split(/\s+/)
-    .filter(word => word.length > 3 && !stopWords.includes(word))
-    .slice(0, 5); // Pegar até 5 palavras-chave
+    .filter(word => word.length > 2 && !stopWords.includes(word));
+    
+  console.log('Palavras extraídas:', words);
+  return words.slice(0, 5); // Pegar até 5 palavras-chave
 }
 
 serve(async (req) => {
@@ -74,53 +82,72 @@ serve(async (req) => {
 
     // Buscar documentos relevantes na base de conhecimento
     let knowledgeContext = '';
+    let foundDocuments = [];
+    
     if (keywords.length > 0) {
-      const searchQuery = keywords.join(' ');
-      const relevantDocs = await searchKnowledgeBase(searchQuery, supabase);
+      // Tentar busca com a frase completa primeiro
+      foundDocuments = await searchKnowledgeBase(message, supabase);
       
-      if (relevantDocs.length > 0) {
-        knowledgeContext = '\n\nINFORMAÇÕES DA BASE DE CONHECIMENTO DA EMPRESA:\n';
-        relevantDocs.forEach((doc, index) => {
-          knowledgeContext += `\n--- Documento ${index + 1}: ${doc.title} ---\n`;
+      // Se não encontrar, tentar com palavras-chave separadas
+      if (foundDocuments.length === 0) {
+        for (const keyword of keywords) {
+          const docs = await searchKnowledgeBase(keyword, supabase);
+          foundDocuments = [...foundDocuments, ...docs];
+          if (foundDocuments.length >= 3) break; // Limitar a 3 documentos
+        }
+      }
+      
+      // Remover duplicatas
+      foundDocuments = foundDocuments.filter((doc, index, self) => 
+        index === self.findIndex(d => d.title === doc.title)
+      );
+      
+      if (foundDocuments.length > 0) {
+        knowledgeContext = '\n\n=== INFORMAÇÕES DA BASE DE CONHECIMENTO DA EMPRESA ===\n';
+        knowledgeContext += `Encontrei ${foundDocuments.length} documento(s) relevante(s) na base de conhecimento:\n\n`;
+        
+        foundDocuments.forEach((doc, index) => {
+          knowledgeContext += `--- DOCUMENTO ${index + 1}: ${doc.title} ---\n`;
           if (doc.category?.name) {
             knowledgeContext += `Categoria: ${doc.category.name}\n`;
           }
           if (doc.summary) {
             knowledgeContext += `Resumo: ${doc.summary}\n`;
           }
-          knowledgeContext += `Conteúdo: ${doc.content.substring(0, 500)}${doc.content.length > 500 ? '...' : ''}\n`;
+          knowledgeContext += `Conteúdo: ${doc.content}\n\n`;
         });
-        knowledgeContext += '\n--- Fim das informações da base de conhecimento ---\n';
         
-        console.log(`Encontrados ${relevantDocs.length} documentos relevantes na base de conhecimento`);
+        knowledgeContext += '=== FIM DAS INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n\n';
+        
+        console.log(`✅ Encontrados ${foundDocuments.length} documentos relevantes para incluir no contexto`);
+      } else {
+        console.log('❌ Nenhum documento relevante foi encontrado na base de conhecimento');
       }
     }
 
-    // Construir histórico da conversa para contexto
+    // Construir o prompt do sistema com instruções mais claras
     const systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional. 
-    
-    Suas características:
-    - Responda sempre em português brasileiro
+
+    INSTRUÇÕES IMPORTANTES:
+    - Responda SEMPRE em português brasileiro
     - Seja preciso e técnico quando necessário
     - Cite normas regulamentadoras (NRs) quando relevante
     - Seja prestativo e educativo
     - Mantenha um tom profissional mas acessível
-    - Se a pergunta não for relacionada à segurança do trabalho, redirecione educadamente para o tema
     
-    IMPORTANTE: Você tem acesso à base de conhecimento específica da empresa do cliente. 
-    Use SEMPRE essas informações como fonte principal para suas respostas, pois elas contêm:
-    - Procedimentos específicos da empresa
-    - Políticas internas de segurança
-    - Documentação técnica personalizada
-    - Normas e regulamentações aplicáveis ao contexto da empresa
+    SOBRE A BASE DE CONHECIMENTO:
+    - Você tem acesso à base de conhecimento específica da empresa do cliente
+    - SEMPRE priorize as informações da base de conhecimento da empresa em suas respostas
+    - Quando usar informações da base de conhecimento, mencione que são "informações específicas da empresa"
+    - Se encontrar informações relevantes na base de conhecimento, use-as como fonte principal
+    - Complemente com conhecimento geral apenas quando necessário
     
-    Quando responder:
-    1. Priorize as informações da base de conhecimento da empresa
-    2. Complemente com conhecimento geral sobre segurança do trabalho quando necessário
-    3. Sempre mencione quando está usando informações específicas da empresa
-    4. Se não encontrar informações específicas na base de conhecimento, use seu conhecimento geral mas deixe isso claro
+    ${knowledgeContext}
     
-    ${knowledgeContext}`;
+    ${foundDocuments.length > 0 ? 
+      'IMPORTANTE: Use as informações acima da base de conhecimento para responder à pergunta do usuário. Essas são informações específicas da empresa e devem ter prioridade na sua resposta.' : 
+      'Não foram encontradas informações específicas na base de conhecimento para esta pergunta. Responda com seu conhecimento geral sobre segurança do trabalho.'
+    }`;
 
     const messages = [
       {
@@ -133,6 +160,8 @@ serve(async (req) => {
       })),
       { role: 'user', content: message }
     ];
+
+    console.log('Enviando para OpenAI com contexto da base de conhecimento...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -155,11 +184,13 @@ serve(async (req) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
+    console.log('✅ Resposta gerada com sucesso');
+
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Erro na função chat-ai:', error);
+    console.error('❌ Erro na função chat-ai:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
       fallbackResponse: "Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente em alguns instantes."
