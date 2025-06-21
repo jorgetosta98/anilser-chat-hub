@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -229,7 +228,7 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {document ? "Editar Documento" : "Novo Documento"}
@@ -237,41 +236,35 @@ export function DocumentFormModal({ isOpen, onClose, document, onSave }: Documen
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
-            {/* Coluna Esquerda */}
-            <div className="space-y-4 overflow-y-auto pr-2">
-              <DocumentFormFields
-                title={formData.title}
-                summary={formData.summary}
-                content={formData.content}
-                context={formData.context}
-                categoryId={formData.category_id}
-                isPublic={formData.is_public}
-                categories={categories}
-                hasFile={hasUploadedFile}
-                onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
-                onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
-                onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
-                onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
-                onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-                onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
-              />
-            </div>
+          <div className="flex-1 space-y-4 overflow-y-auto pr-2">
+            <DocumentFormFields
+              title={formData.title}
+              summary={formData.summary}
+              content={formData.content}
+              context={formData.context}
+              categoryId={formData.category_id}
+              isPublic={formData.is_public}
+              categories={categories}
+              hasFile={hasUploadedFile}
+              onTitleChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+              onSummaryChange={(value) => setFormData(prev => ({ ...prev, summary: value }))}
+              onContentChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+              onContextChange={(value) => setFormData(prev => ({ ...prev, context: value }))}
+              onCategoryChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+              onPublicChange={(value) => setFormData(prev => ({ ...prev, is_public: value }))}
+            />
 
-            {/* Coluna Direita */}
-            <div className="space-y-4 overflow-y-auto pr-2">
-              <DocumentFileUpload
-                uploadedFile={uploadedFile}
-                existingFileUrl={formData.file_url}
-                onFileSelect={handleFileSelect}
-                onFileRemove={handleFileRemove}
-              />
+            <DocumentFileUpload
+              uploadedFile={uploadedFile}
+              existingFileUrl={formData.file_url}
+              onFileSelect={handleFileSelect}
+              onFileRemove={handleFileRemove}
+            />
 
-              <DocumentTagsInput
-                tags={formData.tags}
-                onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
-              />
-            </div>
+            <DocumentTagsInput
+              tags={formData.tags}
+              onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+            />
           </div>
 
           {/* Rodapé com botões */}

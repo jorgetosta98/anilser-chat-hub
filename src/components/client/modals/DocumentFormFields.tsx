@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,33 +56,31 @@ export function DocumentFormFields({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="summary" className="text-sm font-medium">Resumo</Label>
-          <Input
-            id="summary"
-            value={summary}
-            onChange={(e) => onSummaryChange(e.target.value)}
-            placeholder="Breve resumo"
-            className="mt-1"
-          />
-        </div>
+      <div>
+        <Label htmlFor="summary" className="text-sm font-medium">Resumo</Label>
+        <Input
+          id="summary"
+          value={summary}
+          onChange={(e) => onSummaryChange(e.target.value)}
+          placeholder="Breve resumo"
+          className="mt-1"
+        />
+      </div>
 
-        <div>
-          <Label htmlFor="category" className="text-sm font-medium">Categoria</Label>
-          <Select value={categoryId} onValueChange={onCategoryChange}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <Label htmlFor="category" className="text-sm font-medium">Categoria</Label>
+        <Select value={categoryId} onValueChange={onCategoryChange}>
+          <SelectTrigger className="mt-1">
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {hasFile ? (
@@ -94,7 +91,7 @@ export function DocumentFormFields({
             value={context}
             onChange={(e) => onContextChange(e.target.value)}
             placeholder="Adicione contexto adicional sobre o documento (opcional)"
-            className="min-h-[120px] mt-1"
+            className="min-h-[80px] mt-1"
           />
           <p className="text-xs text-gray-500 mt-1">
             O conteúdo será extraído automaticamente do arquivo.
@@ -108,7 +105,7 @@ export function DocumentFormFields({
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
             placeholder="Digite o conteúdo do documento"
-            className="min-h-[200px] mt-1"
+            className="min-h-[120px] mt-1"
             required
           />
         </div>
