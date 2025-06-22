@@ -28,7 +28,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
     refreshQRCode
   } = useWhatsAppConnection();
 
-  // Reset state only when modal closes, not when it opens
+  // Reset state only when modal closes
   useEffect(() => {
     if (!isOpen) {
       resetState();
@@ -38,7 +38,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
   // Handle connection success
   useEffect(() => {
     if (connectionStatus === "connected" && step === 3) {
-      setTimeout(() => {
+      const successTimeout = setTimeout(() => {
         onConnect({
           id: instanceId,
           name: connectionName,
@@ -51,6 +51,8 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
         });
         onClose();
       }, 2000);
+
+      return () => clearTimeout(successTimeout);
     }
   }, [connectionStatus, step, instanceId, connectionName, onConnect, onClose, toast]);
 

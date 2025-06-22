@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,7 +26,7 @@ export function useWhatsAppConnection() {
     setConnectionName(name);
   }, []);
 
-  const handleStartConnection = async () => {
+  const handleStartConnection = useCallback(async () => {
     console.log('Iniciando conexão com nome:', connectionName);
     
     if (!connectionName.trim()) {
@@ -54,11 +54,21 @@ export function useWhatsAppConnection() {
 
       if (error) {
         console.error('Erro ao criar instância:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao criar conexão WhatsApp",
-          variant: "destructive"
-        });
+        
+        // Tratamento específico para erro de autorização
+        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+          toast({
+            title: "Erro de Configuração",
+            description: "Verifique se as chaves da API Evolution estão configuradas corretamente",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Erro ao criar conexão WhatsApp. Verifique os logs do servidor.",
+            variant: "destructive"
+          });
+        }
         return;
       }
 
@@ -70,6 +80,12 @@ export function useWhatsAppConnection() {
         setTimeout(async () => {
           await getQRCode(data.instanceId);
         }, 2000);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Falha ao criar instância WhatsApp",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -81,7 +97,7 @@ export function useWhatsAppConnection() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [connectionName, toast]);
 
   const getQRCode = async (instanceId: string) => {
     try {
@@ -152,14 +168,14 @@ export function useWhatsAppConnection() {
     setTimeout(checkStatus, 2000);
   };
 
-  const refreshQRCode = async () => {
+  const refreshQRCode = useCallback(async () => {
     if (!instanceId) return;
     
     setIsLoading(true);
     setQrCode("");
     await getQRCode(instanceId);
     setIsLoading(false);
-  };
+  }, [instanceId]);
 
   return {
     step,
