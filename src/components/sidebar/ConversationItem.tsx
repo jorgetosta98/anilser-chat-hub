@@ -53,8 +53,8 @@ export function ConversationItem({ conversation, onEdit, onDelete }: Conversatio
     <div className="group relative">
       <div 
         className={`
-          p-3 rounded-lg hover:bg-sidebar-accent cursor-pointer transition-colors flex items-center justify-between
-          ${chatId === conversation.id ? 'bg-sidebar-accent border border-sidebar-border' : ''}
+          px-2 py-2 rounded-md hover:bg-sidebar-accent/50 cursor-pointer transition-colors flex items-center justify-between
+          ${chatId === conversation.id ? 'bg-sidebar-accent/30 border-l-2 border-primary/40' : ''}
         `}
         onClick={() => navigate(`/chat/${conversation.id}`)}
       >
