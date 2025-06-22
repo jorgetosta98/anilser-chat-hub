@@ -1,5 +1,5 @@
 
-import { MessageSquare, Eye, EyeOff, Pencil, Check, X } from "lucide-react";
+import { MessageSquare, Eye, EyeOff, Check, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SidebarMenuItem } from "./SidebarMenuItem";
@@ -42,7 +42,7 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
     navigate('/chat');
   };
 
-  const handleEditStart = (conversationId: string, title: string) => {
+  const handleDoubleClick = (conversationId: string, title: string) => {
     setEditingId(conversationId);
     setEditingTitle(title);
   };
@@ -157,7 +157,13 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
                           </div>
                         ) : (
                           <>
-                            <h3 className="font-medium text-gray-900 truncate">
+                            <h3 
+                              className="font-medium text-gray-900 truncate"
+                              onDoubleClick={(e) => {
+                                e.stopPropagation();
+                                handleDoubleClick(conversation.id, conversation.title);
+                              }}
+                            >
                               {conversation.title}
                             </h3>
                             <p className="text-sm text-gray-500 mt-1">
@@ -166,20 +172,6 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
                           </>
                         )}
                       </div>
-                      {editingId !== conversation.id && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-700 h-6 w-6 p-0 ml-2"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEditStart(conversation.id, conversation.title);
-                          }}
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>
