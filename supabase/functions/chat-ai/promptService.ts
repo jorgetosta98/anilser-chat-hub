@@ -1,3 +1,4 @@
+
 export function buildKnowledgeContext(foundDocuments: any[], knowledgeBase: string): string {
   if (foundDocuments.length === 0) return '';
 
@@ -35,28 +36,8 @@ export function buildKnowledgeContext(foundDocuments: any[], knowledgeBase: stri
   return knowledgeContext;
 }
 
-export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: string, foundDocuments: any[], personalizedInstructions: any = null): string {
-  let systemPrompt = '';
-  
-  // Use personalized instructions if available
-  if (personalizedInstructions) {
-    systemPrompt = `Você é ${personalizedInstructions.persona_name}, um assistente virtual especializado em segurança do trabalho e saúde ocupacional.`;
-    
-    if (personalizedInstructions.persona_description) {
-      systemPrompt += `\n\nSUA PERSONALIDADE: ${personalizedInstructions.persona_description}`;
-    }
-    
-    systemPrompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${personalizedInstructions.instructions}`;
-    
-    if (personalizedInstructions.additional_context) {
-      systemPrompt += `\n\nCONTEXTO ADICIONAL DA EMPRESA:\n${personalizedInstructions.additional_context}`;
-    }
-  } else {
-    // Default instructions if no personalized ones are found
-    systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional.`;
-  }
-
-  systemPrompt += `
+export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: string, foundDocuments: any[]): string {
+  let systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional. 
 
 INSTRUÇÕES IMPORTANTES:
 - Responda SEMPRE em português brasileiro
