@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chatbot_instructions: {
+        Row: {
+          additional_context: string | null
+          created_at: string
+          id: string
+          instructions: string
+          is_active: boolean | null
+          persona_description: string | null
+          persona_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_context?: string | null
+          created_at?: string
+          id?: string
+          instructions: string
+          is_active?: boolean | null
+          persona_description?: string | null
+          persona_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_context?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string
+          is_active?: boolean | null
+          persona_description?: string | null
+          persona_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_ratings: {
         Row: {
           conversation_id: string

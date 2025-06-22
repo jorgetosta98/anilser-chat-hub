@@ -36,10 +36,34 @@ export function buildKnowledgeContext(foundDocuments: any[], knowledgeBase: stri
   return knowledgeContext;
 }
 
-export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: string, foundDocuments: any[]): string {
-  let systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional. 
+export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: string, foundDocuments: any[], customInstructions?: any): string {
+  let systemPrompt = '';
 
-INSTRUÇÕES IMPORTANTES:
+  // Se há instruções personalizadas, use-as como base
+  if (customInstructions) {
+    systemPrompt = `Você é ${customInstructions.persona_name || 'SafeBoy'}`;
+    
+    if (customInstructions.persona_description) {
+      systemPrompt += `, ${customInstructions.persona_description}`;
+    } else {
+      systemPrompt += ', um assistente virtual especializado em segurança do trabalho e saúde ocupacional';
+    }
+
+    systemPrompt += '.\n\n';
+
+    if (customInstructions.instructions) {
+      systemPrompt += `INSTRUÇÕES PERSONALIZADAS:\n${customInstructions.instructions}\n\n`;
+    }
+
+    if (customInstructions.additional_context) {
+      systemPrompt += `CONTEXTO ADICIONAL DA EMPRESA:\n${customInstructions.additional_context}\n\n`;
+    }
+  } else {
+    // Instruções padrão caso não haja personalizações
+    systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional.\n\n`;
+  }
+
+  systemPrompt += `INSTRUÇÕES IMPORTANTES:
 - Responda SEMPRE em português brasileiro
 - Seja preciso e técnico quando necessário
 - Cite normas regulamentadoras (NRs) quando relevante

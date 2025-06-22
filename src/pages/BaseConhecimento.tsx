@@ -6,9 +6,10 @@ import { KnowledgePageHeader } from "@/components/knowledge/KnowledgePageHeader"
 import { KnowledgeFilters } from "@/components/knowledge/KnowledgeFilters";
 import { DocumentList } from "@/components/knowledge/DocumentList";
 import { IntelligentSearchPanel } from "@/components/knowledge/IntelligentSearchPanel";
+import { ChatbotInstructionsSection } from "@/components/knowledge/ChatbotInstructionsSection";
 import { useKnowledgeDocuments } from "@/hooks/useKnowledgeDocuments";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, List } from "lucide-react";
+import { Brain, List, Settings } from "lucide-react";
 
 export default function BaseConhecimento() {
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
@@ -60,7 +61,7 @@ export default function BaseConhecimento() {
         <KnowledgePageHeader onCreateDocument={openCreateModal} />
 
         <Tabs defaultValue="traditional" className="mb-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="traditional" className="flex items-center gap-2">
               <List className="w-4 h-4" />
               Busca Tradicional
@@ -68,6 +69,10 @@ export default function BaseConhecimento() {
             <TabsTrigger value="intelligent" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Busca Inteligente IA
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Configurações do Chatbot
             </TabsTrigger>
           </TabsList>
 
@@ -101,6 +106,10 @@ export default function BaseConhecimento() {
               onEditDocument={openEditModal}
               onDeleteDocument={handleDeleteDocument}
             />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <ChatbotInstructionsSection />
           </TabsContent>
         </Tabs>
 

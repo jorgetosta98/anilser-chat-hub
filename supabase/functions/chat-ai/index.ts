@@ -44,6 +44,24 @@ serve(async (req) => {
     const userId = user.id;
     console.log('Usuário autenticado:', userId);
 
+    // Buscar instruções personalizadas do chatbot
+    let customInstructions = null;
+    try {
+      const { data: instructionsData, error: instructionsError } = await supabase
+        .from('chatbot_instructions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single();
+
+      if (!instructionsError && instructionsData) {
+        customInstructions = instructionsData;
+        console.log('✅ Instruções personalizadas encontradas para o usuário', userId);
+      }
+    } catch (error) {
+      console.log('ℹ️ Nenhuma instrução personalizada encontrada, usando padrão');
+    }
+
     // Extrair palavras-chave da mensagem do usuário
     const keywords = extractKeywords(message);
     console.log('Palavras-chave extraídas:', keywords);
@@ -90,7 +108,7 @@ serve(async (req) => {
 
     // Construir contexto e prompt
     const knowledgeContext = buildKnowledgeContext(foundDocuments, knowledgeBase);
-    const systemPrompt = buildSystemPrompt(knowledgeBase, knowledgeContext, foundDocuments);
+    const systemPrompt = buildSystemPrompt(knowledgeBase, knowledgeContext, foundDocuments, customInstructions);
     const messages = buildMessages(systemPrompt, conversationHistory, message);
 
     console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase} do usuário ${userId}...`);
