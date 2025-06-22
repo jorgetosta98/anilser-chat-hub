@@ -364,6 +364,51 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_connections: {
+        Row: {
+          connected_at: string | null
+          created_at: string
+          id: string
+          instance_id: string
+          last_seen: string | null
+          name: string
+          phone: string
+          qr_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          instance_id: string
+          last_seen?: string | null
+          name: string
+          phone: string
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string
+          last_seen?: string | null
+          name?: string
+          phone?: string
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
