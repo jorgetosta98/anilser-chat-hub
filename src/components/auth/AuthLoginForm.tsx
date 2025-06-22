@@ -41,8 +41,46 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
     }
   });
 
+  const validateForm = () => {
+    if (!loginForm.email || !loginForm.password) {
+      toast({
+        title: '🤖 Ops! Alguns campos estão vazios',
+        description: 'Para continuar, por favor preencha seu email e senha. Estou aqui para ajudar!',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (!loginForm.email.includes('@')) {
+      toast({
+        title: '🤖 Email inválido',
+        description: 'Parece que o formato do email não está correto. Que tal verificar e tentar novamente?',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    if (loginForm.password.length < 6) {
+      toast({
+        title: '🤖 Senha muito curta',
+        description: 'A senha precisa ter pelo menos 6 caracteres. Pode verificar se digitou corretamente?',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar formulário ANTES de mostrar loading
+    if (!validateForm()) {
+      return; // Para aqui se a validação falhar, sem mostrar loading
+    }
+    
+    // Só mostrar loading se a validação passou
     setLocalLoading(true);
     setIsLoading(true);
 
@@ -51,8 +89,8 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
       
       if (error) {
         toast({
-          title: 'Erro no login',
-          description: 'Email ou senha incorretos. Tente novamente.',
+          title: '🤖 Acesso não autorizado',
+          description: 'Parece que a senha ou email estão incorretos. Que tal tentar novamente? Se precisar de ajuda, estou por aqui!',
           variant: 'destructive',
         });
         setLocalLoading(false);
@@ -75,8 +113,8 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
 
       // Login bem-sucedido - mostrar mensagem de sucesso
       toast({
-        title: 'Login realizado com sucesso!',
-        description: 'Redirecionando...',
+        title: '🎉 Login realizado com sucesso!',
+        description: 'Bem-vindo de volta! Redirecionando...',
       });
 
       // O redirecionamento será feito automaticamente pelo useAuthRedirect
@@ -84,8 +122,8 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
     } catch (error) {
       console.error('Erro inesperado no login:', error);
       toast({
-        title: 'Erro no login',
-        description: 'Ocorreu um erro inesperado. Tente novamente.',
+        title: '🤖 Algo deu errado',
+        description: 'Ocorreu um erro inesperado. Não se preocupe, vamos tentar resolver! Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
       setLocalLoading(false);

@@ -54,7 +54,18 @@ export function LoginForm() {
     if (passwordError) newErrors.password = passwordError;
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    
+    // Se houver erros, mostrar toast amigável sem loading
+    if (Object.keys(newErrors).length > 0) {
+      toast({
+        title: "🤖 Ops! Alguns campos precisam de atenção",
+        description: "Por favor, corrija os erros nos campos destacados. Estou aqui para ajudar!",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
   };
 
   const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
@@ -67,15 +78,12 @@ export function LoginForm() {
   };
 
   const handleLogin = async () => {
+    // Validar formulário ANTES de mostrar loading
     if (!validateForm()) {
-      toast({
-        title: "Erro de validação",
-        description: "Por favor, corrija os erros nos campos.",
-        variant: "destructive",
-      });
-      return;
+      return; // Para aqui se a validação falhar, sem mostrar loading
     }
 
+    // Só mostrar loading se a validação passou
     setIsLoading(true);
     
     try {
@@ -83,8 +91,8 @@ export function LoginForm() {
       
       if (error) {
         toast({
-          title: "Erro no login",
-          description: "Email ou senha incorretos. Tente novamente.",
+          title: "🤖 Acesso não autorizado",
+          description: "Parece que a senha ou email estão incorretos. Que tal tentar novamente? Se precisar de ajuda, estou por aqui!",
           variant: "destructive",
         });
         setIsLoading(false);
@@ -109,8 +117,8 @@ export function LoginForm() {
       }
       
       toast({
-        title: "Login realizado com sucesso!",
-        description: "Redirecionando...",
+        title: "🎉 Login realizado com sucesso!",
+        description: "Bem-vindo de volta! Redirecionando...",
       });
       
       // O redirecionamento será feito automaticamente pelo useAuthRedirect
@@ -118,8 +126,8 @@ export function LoginForm() {
     } catch (error) {
       console.error('Erro no login:', error);
       toast({
-        title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        title: "🤖 Algo deu errado",
+        description: "Ocorreu um erro inesperado. Não se preocupe, vamos tentar resolver! Tente novamente em alguns instantes.",
         variant: "destructive",
       });
       setIsLoading(false);
