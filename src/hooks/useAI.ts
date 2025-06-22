@@ -14,11 +14,21 @@ export function useAI() {
     setIsGenerating(true);
     
     try {
+      // Obter o token de autenticação do usuário atual
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: {
           message,
           conversationHistory: conversationHistory.slice(-10), // Últimas 10 mensagens para contexto
           knowledgeBase
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         }
       });
 

@@ -12,8 +12,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Função para buscar documentos relevantes na base de conhecimento normal
-async function searchNormalKnowledgeBase(query: string, supabase: any) {
+// Função para buscar documentos relevantes na base de conhecimento normal (filtrado por usuário)
+async function searchNormalKnowledgeBase(query: string, supabase: any, userId: string) {
   try {
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
     
@@ -25,7 +25,7 @@ async function searchNormalKnowledgeBase(query: string, supabase: any) {
         summary,
         category:knowledge_categories(name)
       `)
-      .eq('is_public', true)
+      .eq('user_id', userId) // FILTRO CRUCIAL: apenas documentos do usuário
       .or(`title.ilike.%${query}%,content.ilike.%${query}%,summary.ilike.%${query}%`)
       .limit(3);
 
@@ -34,7 +34,7 @@ async function searchNormalKnowledgeBase(query: string, supabase: any) {
       return [];
     }
 
-    console.log(`Busca normal por "${query}" encontrou ${data?.length || 0} documentos`);
+    console.log(`Busca normal por "${query}" para usuário ${userId} encontrou ${data?.length || 0} documentos`);
     return data || [];
   } catch (error) {
     console.error('Erro na busca da base de conhecimento normal:', error);
@@ -42,20 +42,21 @@ async function searchNormalKnowledgeBase(query: string, supabase: any) {
   }
 }
 
-// Função para buscar conversas do WhatsApp relevantes
-async function searchWhatsAppKnowledgeBase(query: string, supabase: any) {
+// Função para buscar conversas do WhatsApp relevantes (filtrado por usuário)
+async function searchWhatsAppKnowledgeBase(query: string, supabase: any, userId: string) {
   try {
-    // Assumindo que existe uma tabela 'whatsapp_conversations' ou similar
-    // Vou usar a tabela messages como exemplo para conversas do WhatsApp
+    // Buscar conversas do usuário específico
     const { data, error } = await supabase
       .from('messages')
       .select(`
         content,
         created_at,
-        conversation_id
+        conversation_id,
+        conversations!inner(user_id)
       `)
       .ilike('content', `%${query}%`)
       .eq('is_user', false) // Apenas respostas da IA/assistente
+      .eq('conversations.user_id', userId) // FILTRO CRUCIAL: apenas conversas do usuário
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -64,7 +65,7 @@ async function searchWhatsAppKnowledgeBase(query: string, supabase: any) {
       return [];
     }
 
-    console.log(`Busca WhatsApp por "${query}" encontrou ${data?.length || 0} conversas`);
+    console.log(`Busca WhatsApp por "${query}" para usuário ${userId} encontrou ${data?.length || 0} conversas`);
     return data || [];
   } catch (error) {
     console.error('Erro na busca da base WhatsApp:', error);
@@ -105,6 +106,23 @@ serve(async (req) => {
     // Inicializar cliente Supabase
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Obter o usuário autenticado do header Authorization
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Token de autorização não encontrado');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Erro na autenticação:', authError);
+      throw new Error('Usuário não autenticado');
+    }
+
+    const userId = user.id;
+    console.log('Usuário autenticado:', userId);
+
     // Extrair palavras-chave da mensagem do usuário
     const keywords = extractKeywords(message);
     console.log('Palavras-chave extraídas:', keywords);
@@ -116,8 +134,8 @@ serve(async (req) => {
     
     if (keywords.length > 0) {
       if (knowledgeBase === 'whatsapp') {
-        // Buscar na base WhatsApp
-        foundDocuments = await searchWhatsAppKnowledgeBase(message, supabase);
+        // Buscar na base WhatsApp do usuário específico
+        foundDocuments = await searchWhatsAppKnowledgeBase(message, supabase, userId);
         
         if (foundDocuments.length > 0) {
           knowledgeContext = '\n\n=== INFORMAÇÕES DAS CONVERSAS DO WHATSAPP ===\n';
@@ -131,16 +149,16 @@ serve(async (req) => {
           
           knowledgeContext += '=== FIM DAS INFORMAÇÕES DO WHATSAPP ===\n\n';
           
-          console.log(`✅ Encontradas ${foundDocuments.length} conversas do WhatsApp relevantes`);
+          console.log(`✅ Encontradas ${foundDocuments.length} conversas do WhatsApp relevantes para o usuário ${userId}`);
         }
       } else {
-        // Buscar na base normal
-        foundDocuments = await searchNormalKnowledgeBase(message, supabase);
+        // Buscar na base normal do usuário específico
+        foundDocuments = await searchNormalKnowledgeBase(message, supabase, userId);
         
         // Se não encontrar, tentar com palavras-chave separadas
         if (foundDocuments.length === 0) {
           for (const keyword of keywords) {
-            const docs = await searchNormalKnowledgeBase(keyword, supabase);
+            const docs = await searchNormalKnowledgeBase(keyword, supabase, userId);
             foundDocuments = [...foundDocuments, ...docs];
             if (foundDocuments.length >= 3) break;
           }
@@ -168,12 +186,12 @@ serve(async (req) => {
           
           knowledgeContext += '=== FIM DAS INFORMAÇÕES DA BASE DE CONHECIMENTO ===\n\n';
           
-          console.log(`✅ Encontrados ${foundDocuments.length} documentos relevantes`);
+          console.log(`✅ Encontrados ${foundDocuments.length} documentos relevantes para o usuário ${userId}`);
         }
       }
       
       if (foundDocuments.length === 0) {
-        console.log(`❌ Nenhum documento relevante foi encontrado na base ${knowledgeBase}`);
+        console.log(`❌ Nenhum documento relevante foi encontrado na base ${knowledgeBase} para o usuário ${userId}`);
       }
     }
 
@@ -231,7 +249,7 @@ serve(async (req) => {
       { role: 'user', content: message }
     ];
 
-    console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase}...`);
+    console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase} do usuário ${userId}...`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -254,7 +272,7 @@ serve(async (req) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    console.log('✅ Resposta gerada com sucesso');
+    console.log('✅ Resposta gerada com sucesso para o usuário', userId);
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -266,7 +284,7 @@ serve(async (req) => {
       fallbackResponse: "Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente em alguns instantes."
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'Content-json' },
     });
   }
 });
