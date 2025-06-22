@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -63,6 +62,7 @@ serve(async (req) => {
         
         console.log('Creating Evolution instance:', instanceId)
         console.log('Using Evolution URL:', evolutionBaseUrl)
+        console.log('Connection name:', name)
         
         // Create instance in Evolution API with minimal configuration
         const createPayload = {
@@ -133,6 +133,36 @@ serve(async (req) => {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
             }
           )
+        }
+
+        // Send webhook notification with connection name
+        try {
+          console.log('Sending webhook notification with connection name:', name)
+          
+          const webhookPayload = {
+            event: 'whatsapp_connection_created',
+            connection_name: name,
+            instance_id: instanceId,
+            user_id: user.id,
+            timestamp: new Date().toISOString()
+          }
+
+          const webhookResponse = await fetch('https://n8n.vivendodemicrosaas.com.br/webhook-test/66b088e5-3560-4d0d-b460-ec7806144b71', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+          })
+
+          if (webhookResponse.ok) {
+            console.log('Webhook notification sent successfully')
+          } else {
+            console.error('Failed to send webhook notification:', await webhookResponse.text())
+          }
+        } catch (webhookError) {
+          console.error('Error sending webhook notification:', webhookError)
+          // Don't fail the whole process if webhook fails
         }
 
         return new Response(
