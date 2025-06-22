@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ArrowRight, Smartphone, Plus, Trash2, Power, PowerOff } from "lucide-react";
 import { useState } from "react";
-import { WhatsAppConnectionModal } from "@/components/client/modals/WhatsAppConnectionModal";
+import { WhatsAppConnectionModal } from "@/components/client/modals/whatsapp/WhatsAppConnectionModal";
 import { useWhatsAppConnections } from "@/hooks/useWhatsAppConnections";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
