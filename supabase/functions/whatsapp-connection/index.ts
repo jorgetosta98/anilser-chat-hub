@@ -41,6 +41,10 @@ serve(async (req) => {
     const evolutionBaseUrl = Deno.env.get('EVOLUTION_BASE_URL')
 
     if (!evolutionApiKey || !evolutionBaseUrl) {
+      console.error('Missing Evolution API configuration:', { 
+        hasApiKey: !!evolutionApiKey, 
+        hasBaseUrl: !!evolutionBaseUrl 
+      })
       return new Response(
         JSON.stringify({ error: 'Evolution API configuration missing' }),
         { 
@@ -58,32 +62,38 @@ serve(async (req) => {
         const instanceId = `safeboy_${user.id}_${Date.now()}`
         
         console.log('Creating Evolution instance:', instanceId)
+        console.log('Using Evolution URL:', evolutionBaseUrl)
         
-        // Create instance in Evolution API
+        // Create instance in Evolution API with minimal configuration
+        const createPayload = {
+          instanceName: instanceId,
+          token: evolutionApiKey,
+          qrcode: true
+        }
+        
+        console.log('Create payload:', JSON.stringify(createPayload, null, 2))
+        
         const createResponse = await fetch(`${evolutionBaseUrl}/instance/create`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'apikey': evolutionApiKey,
           },
-          body: JSON.stringify({
-            instanceName: instanceId,
-            token: evolutionApiKey,
-            qrcode: true,
-            chatwoot_account_id: null,
-            chatwoot_token: null,
-            chatwoot_url: null,
-            webhook_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`,
-            webhook_by_events: false,
-            events: ["APPLICATION_STARTUP", "QRCODE_UPDATED", "CONNECTION_UPDATE", "MESSAGES_UPSERT"]
-          })
+          body: JSON.stringify(createPayload)
         })
 
+        const responseText = await createResponse.text()
+        console.log('Evolution API response status:', createResponse.status)
+        console.log('Evolution API response:', responseText)
+
         if (!createResponse.ok) {
-          const errorText = await createResponse.text()
-          console.error('Failed to create Evolution instance:', errorText)
+          console.error('Failed to create Evolution instance:', responseText)
           return new Response(
-            JSON.stringify({ error: 'Failed to create WhatsApp instance', details: errorText }),
+            JSON.stringify({ 
+              error: 'Failed to create WhatsApp instance', 
+              details: responseText,
+              status: createResponse.status
+            }),
             { 
               status: 500, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -91,7 +101,14 @@ serve(async (req) => {
           )
         }
 
-        const createResult = await createResponse.json()
+        let createResult
+        try {
+          createResult = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('Failed to parse Evolution API response:', parseError)
+          createResult = { success: true, response: responseText }
+        }
+        
         console.log('Evolution instance created successfully:', createResult)
 
         // Store connection in database
@@ -102,8 +119,7 @@ serve(async (req) => {
             name,
             phone: '', // Será preenchido após conexão
             instance_id: instanceId,
-            status: 'created',
-            webhook_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`
+            status: 'created'
           })
           .select()
           .single()
@@ -295,7 +311,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('WhatsApp connection error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
