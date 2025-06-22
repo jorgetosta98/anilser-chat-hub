@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,6 +60,7 @@ export function LoginForm() {
         title: "🤖 Ops! Alguns campos precisam de atenção",
         description: "Por favor, corrija os erros nos campos destacados. Estou aqui para ajudar!",
         variant: "destructive",
+        className: "border-red-200 bg-red-50 text-red-800",
       });
       return false;
     }
@@ -78,24 +78,27 @@ export function LoginForm() {
   };
 
   const handleLogin = async () => {
-    // Validar formulário ANTES de mostrar loading
+    // Validar formulário ANTES de qualquer loading
     if (!validateForm()) {
-      return; // Para aqui se a validação falhar, sem mostrar loading
+      return; // Para aqui se a validação falhar, SEM mostrar loading
     }
 
-    // Só mostrar loading se a validação passou
+    // Só ativar loading APÓS validação passar
     setIsLoading(true);
     
     try {
       const { error } = await signIn(formData.email, formData.password);
       
       if (error) {
+        // Parar loading imediatamente quando há erro de autenticação
+        setIsLoading(false);
+        
         toast({
-          title: "🤖 Acesso não autorizado",
+          title: "🔐 Acesso não autorizado",
           description: "Parece que a senha ou email estão incorretos. Que tal tentar novamente? Se precisar de ajuda, estou por aqui!",
           variant: "destructive",
+          className: "border-orange-200 bg-orange-50 text-orange-800",
         });
-        setIsLoading(false);
         return;
       }
       
@@ -119,18 +122,20 @@ export function LoginForm() {
       toast({
         title: "🎉 Login realizado com sucesso!",
         description: "Bem-vindo de volta! Redirecionando...",
+        className: "border-teal-200 bg-teal-50 text-teal-800",
       });
       
       // O redirecionamento será feito automaticamente pelo useAuthRedirect
       
     } catch (error) {
       console.error('Erro no login:', error);
+      setIsLoading(false);
       toast({
-        title: "🤖 Algo deu errado",
+        title: "⚠️ Algo deu errado",
         description: "Ocorreu um erro inesperado. Não se preocupe, vamos tentar resolver! Tente novamente em alguns instantes.",
         variant: "destructive",
+        className: "border-red-200 bg-red-50 text-red-800",
       });
-      setIsLoading(false);
     }
   };
 
