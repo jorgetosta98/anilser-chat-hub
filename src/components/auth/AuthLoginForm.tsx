@@ -15,13 +15,14 @@ interface AuthLoginFormProps {
 
 export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const { signIn } = useAuth();
+  const [localLoading, setLocalLoading] = useState(false);
+  const { signIn, user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLocalLoading(true);
 
     try {
       const { error } = await signIn(loginForm.email, loginForm.password);
@@ -29,31 +30,40 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
       if (error) {
         toast({
           title: 'Erro no login',
-          description: error.message,
+          description: 'Email ou senha incorretos. Tente novamente.',
           variant: 'destructive',
         });
-      } else {
-        toast({
-          title: 'Login realizado com sucesso!',
-          description: 'Redirecionando...',
-        });
-        
-        // Pequeno delay para mostrar o loading antes de redirecionar
-        setTimeout(() => {
-          navigate('/chat');
-        }, 1500);
+        setLocalLoading(false);
+        return;
       }
+
+      // Login bem-sucedido - mostrar mensagem de sucesso
+      toast({
+        title: 'Login realizado com sucesso!',
+        description: 'Redirecionando...',
+      });
+
+      // Ativar loading da página principal apenas APÓS sucesso
+      setIsLoading(true);
+      
+      // Aguardar um pouco para o profile ser carregado
+      setTimeout(() => {
+        // Verificar role do usuário para redirecionamento
+        if (profile?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/chat');
+        }
+      }, 1000);
+
     } catch (error) {
+      console.error('Erro inesperado no login:', error);
       toast({
         title: 'Erro no login',
-        description: 'Ocorreu um erro inesperado.',
+        description: 'Ocorreu um erro inesperado. Tente novamente.',
         variant: 'destructive',
       });
-    } finally {
-      // Manter loading por um pouco mais de tempo para UX
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1500);
+      setLocalLoading(false);
     }
   };
 
@@ -76,6 +86,7 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
               value={loginForm.email}
               onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
               placeholder="seu@email.com"
+              disabled={localLoading}
             />
           </div>
           <div>
@@ -87,10 +98,11 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
               value={loginForm.password}
               onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
               placeholder="••••••••"
+              disabled={localLoading}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            Entrar
+          <Button type="submit" className="w-full" disabled={localLoading || isLoading}>
+            {localLoading ? 'Verificando...' : 'Entrar'}
           </Button>
         </form>
       </CardContent>
