@@ -1,5 +1,5 @@
 
-import { MessageSquare, Eye, EyeOff } from "lucide-react";
+import { MessageSquare, Eye, EyeOff, Pencil, Check, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SidebarMenuItem } from "./SidebarMenuItem";
@@ -8,6 +8,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useMessages } from "@/hooks/useMessages";
 import { Button } from "@/components/ui/button";
 import { QuickFeedbackModal } from "../modals/QuickFeedbackModal";
+import { Input } from "@/components/ui/input";
 
 interface RegularUserSidebarProps {
   isCollapsed: boolean;
@@ -16,7 +17,9 @@ interface RegularUserSidebarProps {
 export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
   const [showRecentChats, setShowRecentChats] = useState(true);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const { conversations } = useConversations();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const { conversations, updateConversation } = useConversations();
   const navigate = useNavigate();
   const { chatId } = useParams();
   
@@ -37,6 +40,24 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
     setShowFeedbackModal(false);
     // Após o feedback, redirecionar para a tela inicial
     navigate('/chat');
+  };
+
+  const handleEditStart = (conversationId: string, title: string) => {
+    setEditingId(conversationId);
+    setEditingTitle(title);
+  };
+
+  const handleEditSave = async () => {
+    if (editingId && editingTitle.trim()) {
+      updateConversation({ id: editingId, title: editingTitle.trim() });
+      setEditingId(null);
+      setEditingTitle("");
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditingTitle("");
   };
 
   const formatDate = (dateString: string) => {
@@ -94,15 +115,74 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
             </div>
             <div className="space-y-1 flex-1 relative">
               {conversations.slice(0, 9).map(conversation => (
-                <SidebarMenuItem
-                  key={conversation.id}
-                  item={{
-                    title: conversation.title,
-                    icon: MessageSquare,
-                    path: `/chat/${conversation.id}`
-                  }}
-                  isCollapsed={false}
-                />
+                <div key={conversation.id} className="group relative">
+                  <div className={`
+                    p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors
+                    ${chatId === conversation.id ? 'bg-primary/10 border border-primary/20' : ''}
+                  `}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0" onClick={() => !editingId && navigate(`/chat/${conversation.id}`)}>
+                        {editingId === conversation.id ? (
+                          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              value={editingTitle}
+                              onChange={(e) => setEditingTitle(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditSave();
+                                } else if (e.key === 'Escape') {
+                                  handleEditCancel();
+                                }
+                              }}
+                              className="h-8 text-sm"
+                              autoFocus
+                            />
+                            <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                onClick={handleEditSave}
+                                className="h-6 w-6 p-0 bg-green-600 hover:bg-green-700"
+                              >
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleEditCancel}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {conversation.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {formatDate(conversation.updated_at || conversation.created_at || '')}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      {editingId !== conversation.id && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-700 h-6 w-6 p-0 ml-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEditStart(conversation.id, conversation.title);
+                          }}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
               {conversations.length === 0 && (
                 <div className="text-center py-4 text-sidebar-foreground/70">
