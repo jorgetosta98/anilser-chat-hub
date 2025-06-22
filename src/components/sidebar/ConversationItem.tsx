@@ -54,7 +54,7 @@ export function ConversationItem({ conversation, onEdit, onDelete }: Conversatio
       <div 
         className={`
           px-2 py-2 rounded-md hover:bg-sidebar-accent/50 cursor-pointer transition-colors flex items-center justify-between
-          ${chatId === conversation.id ? 'bg-sidebar-accent/30 border-l-2 border-primary/40' : ''}
+          ${chatId === conversation.id ? 'bg-sidebar-accent/30' : ''}
         `}
         onClick={() => navigate(`/chat/${conversation.id}`)}
       >
