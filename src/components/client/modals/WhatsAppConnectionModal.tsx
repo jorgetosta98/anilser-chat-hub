@@ -16,8 +16,7 @@ interface WhatsAppConnectionModalProps {
 }
 
 export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsAppConnectionModalProps) {
-  const [step, setStep] = useState(1); // 1: Phone, 2: QR Code, 3: Success
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [step, setStep] = useState(1); // 1: Nome, 2: QR Code, 3: Sucesso
   const [connectionName, setConnectionName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [qrCode, setQrCode] = useState("");
@@ -29,7 +28,6 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
   useEffect(() => {
     if (isOpen) {
       setStep(1);
-      setPhoneNumber("");
       setConnectionName("");
       setQrCode("");
       setInstanceId("");
@@ -38,10 +36,10 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
   }, [isOpen]);
 
   const handleStartConnection = async () => {
-    if (!phoneNumber || !connectionName) {
+    if (!connectionName.trim()) {
       toast({
         title: "Erro",
-        description: "Número de telefone e nome da conexão são obrigatórios",
+        description: "Nome da conexão é obrigatório",
         variant: "destructive"
       });
       return;
@@ -49,19 +47,21 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
 
     setIsLoading(true);
     try {
-      // Create WhatsApp instance
+      console.log('Criando instância WhatsApp com nome:', connectionName);
+      
+      // Criar instância WhatsApp na Evolution API
       const { data, error } = await supabase.functions.invoke('whatsapp-connection', {
         body: {
           action: 'create_instance',
           connectionData: {
             name: connectionName,
-            phone: phoneNumber
+            phone: '' // Não precisamos do número ainda, será detectado após conexão
           }
         }
       });
 
       if (error) {
-        console.error('Error creating instance:', error);
+        console.error('Erro ao criar instância:', error);
         toast({
           title: "Erro",
           description: "Erro ao criar conexão WhatsApp",
@@ -71,13 +71,17 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
       }
 
       if (data?.success) {
+        console.log('Instância criada com sucesso:', data.instanceId);
         setInstanceId(data.instanceId);
         setStep(2);
-        // Get QR code
-        await getQRCode(data.instanceId);
+        
+        // Aguardar um pouco e então buscar o QR code
+        setTimeout(async () => {
+          await getQRCode(data.instanceId);
+        }, 2000);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Erro:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao criar conexão",
@@ -90,6 +94,8 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
 
   const getQRCode = async (instanceId: string) => {
     try {
+      console.log('Buscando QR code para instância:', instanceId);
+      
       const { data, error } = await supabase.functions.invoke('whatsapp-connection', {
         body: {
           action: 'get_qr_code',
@@ -98,21 +104,34 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
       });
 
       if (error) {
-        console.error('Error getting QR code:', error);
+        console.error('Erro ao buscar QR code:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao gerar QR code",
+          variant: "destructive"
+        });
         return;
       }
 
       if (data?.success && data.qrCode) {
+        console.log('QR code recebido');
         setQrCode(data.qrCode);
-        // Start checking connection status
+        // Iniciar verificação do status de conexão
         startStatusCheck(instanceId);
+      } else {
+        // Tentar novamente após alguns segundos
+        setTimeout(() => getQRCode(instanceId), 3000);
       }
     } catch (error) {
-      console.error('Error getting QR code:', error);
+      console.error('Erro ao buscar QR code:', error);
+      // Tentar novamente após alguns segundos
+      setTimeout(() => getQRCode(instanceId), 3000);
     }
   };
 
   const startStatusCheck = (instanceId: string) => {
+    console.log('Iniciando verificação de status para:', instanceId);
+    
     const checkStatus = async () => {
       try {
         const { data, error } = await supabase.functions.invoke('whatsapp-connection', {
@@ -123,18 +142,22 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
         });
 
         if (error) {
-          console.error('Error checking status:', error);
+          console.error('Erro ao verificar status:', error);
           return;
         }
 
+        console.log('Status da conexão:', data);
+
         if (data?.connected) {
+          console.log('WhatsApp conectado com sucesso!');
           setConnectionStatus("connected");
           setStep(3);
+          
+          // Mostrar sucesso por 2 segundos e fechar
           setTimeout(() => {
             onConnect({
               id: instanceId,
               name: connectionName,
-              phone: phoneNumber,
               status: "connected",
               connectedAt: new Date().toISOString()
             });
@@ -145,15 +168,17 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
             onClose();
           }, 2000);
         } else {
-          // Continue checking every 3 seconds
+          // Continuar verificando a cada 3 segundos
           setTimeout(() => checkStatus(), 3000);
         }
       } catch (error) {
-        console.error('Error checking status:', error);
+        console.error('Erro ao verificar status:', error);
+        // Continuar verificando mesmo com erro
+        setTimeout(() => checkStatus(), 5000);
       }
     };
 
-    // Start checking after 2 seconds
+    // Iniciar verificação após 2 segundos
     setTimeout(checkStatus, 2000);
   };
 
@@ -161,6 +186,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
     if (!instanceId) return;
     
     setIsLoading(true);
+    setQrCode("");
     await getQRCode(instanceId);
     setIsLoading(false);
   };
@@ -177,17 +203,11 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
                 value={connectionName}
                 onChange={(e) => setConnectionName(e.target.value)}
                 placeholder="Ex: Atendimento Principal"
+                className="mt-1"
               />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Número do WhatsApp *</Label>
-              <Input
-                id="phone"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="Ex: +55 11 99999-9999"
-              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Este nome ajudará você a identificar a conexão
+              </p>
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg">
@@ -196,9 +216,10 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
                 <div className="text-sm">
                   <p className="font-medium text-blue-900">Como funciona:</p>
                   <p className="text-blue-700 mt-1">
-                    1. Informe o número do WhatsApp que deseja conectar<br/>
-                    2. Escaneie o código QR com seu celular<br/>
-                    3. Aguarde a confirmação da conexão
+                    1. Informe o nome para identificar esta conexão<br/>
+                    2. O sistema criará uma instância e gerará o QR code<br/>
+                    3. Escaneie o código QR com seu WhatsApp<br/>
+                    4. Aguarde a confirmação da conexão
                   </p>
                 </div>
               </div>
@@ -214,7 +235,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
             </div>
             <h3 className="text-lg font-semibold">Escaneie o código QR</h3>
             <p className="text-sm text-muted-foreground">
-              Use seu celular para escanear o código QR no WhatsApp
+              Abra o WhatsApp no seu celular e escaneie o código QR abaixo
             </p>
             
             <Card className="p-4">
@@ -224,7 +245,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
                     <img 
                       src={`data:image/png;base64,${qrCode}`} 
                       alt="QR Code" 
-                      className="w-48 h-48 border rounded"
+                      className="w-64 h-64 border rounded"
                     />
                     <Button 
                       onClick={refreshQRCode} 
@@ -246,8 +267,9 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
                     </Button>
                   </div>
                 ) : (
-                  <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded mx-auto">
-                    <Loader2 className="w-8 h-8 animate-spin" />
+                  <div className="w-64 h-64 bg-gray-100 flex flex-col items-center justify-center rounded mx-auto">
+                    <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                    <p className="text-sm text-gray-600">Gerando QR Code...</p>
                   </div>
                 )}
               </CardContent>
@@ -255,18 +277,21 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
 
             <div className="bg-yellow-50 p-3 rounded text-sm">
               <p className="text-yellow-800">
-                <strong>Importante:</strong> Mantenha esta janela aberta até confirmar a conexão
+                <strong>Instruções:</strong><br/>
+                1. Abra o WhatsApp no seu celular<br/>
+                2. Toque nos três pontos (⋮) no canto superior direito<br/>
+                3. Selecione "Aparelhos conectados"<br/>
+                4. Toque em "Conectar um aparelho"<br/>
+                5. Escaneie este QR code
               </p>
             </div>
 
-            {connectionStatus === "connecting" && (
-              <div className="bg-blue-50 p-3 rounded text-sm">
-                <p className="text-blue-800">
-                  <Loader2 className="w-4 h-4 inline mr-2 animate-spin" />
-                  Aguardando conexão...
-                </p>
-              </div>
-            )}
+            <div className="bg-blue-50 p-3 rounded text-sm">
+              <p className="text-blue-800">
+                <Loader2 className="w-4 h-4 inline mr-2 animate-spin" />
+                Aguardando conexão... Mantenha esta janela aberta.
+              </p>
+            </div>
           </div>
         );
 
@@ -284,8 +309,14 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
             <div className="bg-green-50 p-4 rounded-lg text-left">
               <p className="text-sm text-green-800">
                 <strong>Conexão:</strong> {connectionName}<br/>
-                <strong>Número:</strong> {phoneNumber}<br/>
-                <strong>Status:</strong> Conectado
+                <strong>Status:</strong> Conectado ✅<br/>
+                <strong>Instância:</strong> {instanceId}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded text-sm">
+              <p className="text-blue-800">
+                Agora você pode enviar mensagens pelo WhatsApp e receber respostas automáticas do SafeBoy!
               </p>
             </div>
           </div>
@@ -302,11 +333,13 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
       onClose={onClose}
       title="Nova Conexão WhatsApp"
       onSubmit={step === 1 ? handleStartConnection : undefined}
-      submitText={step === 1 ? (isLoading ? "Iniciando..." : "Iniciar Conexão") : undefined}
+      submitText={step === 1 ? (isLoading ? "Criando..." : "Criar Conexão") : undefined}
       isLoading={isLoading}
-      maxWidth="max-w-lg"
+      maxWidth="max-w-2xl"
     >
-      {renderStepContent()}
+      <div className="min-h-[400px]">
+        {renderStepContent()}
+      </div>
     </FormModal>
   );
 }

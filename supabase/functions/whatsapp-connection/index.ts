@@ -54,8 +54,10 @@ serve(async (req) => {
 
     switch (action) {
       case 'create_instance': {
-        const { name, phone } = connectionData
-        const instanceId = `instance_${user.id}_${Date.now()}`
+        const { name } = connectionData
+        const instanceId = `safeboy_${user.id}_${Date.now()}`
+        
+        console.log('Creating Evolution instance:', instanceId)
         
         // Create instance in Evolution API
         const createResponse = await fetch(`${evolutionBaseUrl}/instance/create`, {
@@ -81,7 +83,7 @@ serve(async (req) => {
           const errorText = await createResponse.text()
           console.error('Failed to create Evolution instance:', errorText)
           return new Response(
-            JSON.stringify({ error: 'Failed to create WhatsApp instance' }),
+            JSON.stringify({ error: 'Failed to create WhatsApp instance', details: errorText }),
             { 
               status: 500, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -89,13 +91,16 @@ serve(async (req) => {
           )
         }
 
+        const createResult = await createResponse.json()
+        console.log('Evolution instance created successfully:', createResult)
+
         // Store connection in database
         const { data: connection, error } = await supabaseClient
           .from('whatsapp_connections')
           .insert({
             user_id: user.id,
             name,
-            phone,
+            phone: '', // Será preenchido após conexão
             instance_id: instanceId,
             status: 'created',
             webhook_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-webhook`
@@ -129,6 +134,8 @@ serve(async (req) => {
       case 'get_qr_code': {
         const { instanceId } = connectionData
         
+        console.log('Getting QR code for instance:', instanceId)
+        
         // Get QR code from Evolution API
         const qrResponse = await fetch(`${evolutionBaseUrl}/instance/connect/${instanceId}`, {
           method: 'GET',
@@ -138,8 +145,10 @@ serve(async (req) => {
         })
 
         if (!qrResponse.ok) {
+          const errorText = await qrResponse.text()
+          console.error('Failed to get QR code:', errorText)
           return new Response(
-            JSON.stringify({ error: 'Failed to get QR code' }),
+            JSON.stringify({ error: 'Failed to get QR code', details: errorText }),
             { 
               status: 500, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -148,30 +157,47 @@ serve(async (req) => {
         }
 
         const qrData = await qrResponse.json()
+        console.log('QR code response:', qrData)
         
-        // Update connection with QR code
-        await supabaseClient
-          .from('whatsapp_connections')
-          .update({ 
-            qr_code: qrData.code || qrData.qrcode,
-            status: 'qr_generated'
-          })
-          .eq('instance_id', instanceId)
-          .eq('user_id', user.id)
+        const qrCode = qrData.code || qrData.qrcode || qrData.base64
+        
+        if (qrCode) {
+          // Update connection with QR code
+          await supabaseClient
+            .from('whatsapp_connections')
+            .update({ 
+              qr_code: qrCode,
+              status: 'qr_generated'
+            })
+            .eq('instance_id', instanceId)
+            .eq('user_id', user.id)
 
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            qrCode: qrData.code || qrData.qrcode 
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        )
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              qrCode: qrCode 
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        } else {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'QR code not available yet' 
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
       }
 
       case 'check_status': {
         const { instanceId } = connectionData
+        
+        console.log('Checking status for instance:', instanceId)
         
         // Check connection status
         const statusResponse = await fetch(`${evolutionBaseUrl}/instance/connectionState/${instanceId}`, {
@@ -182,6 +208,8 @@ serve(async (req) => {
         })
 
         if (!statusResponse.ok) {
+          const errorText = await statusResponse.text()
+          console.error('Failed to check status:', errorText)
           return new Response(
             JSON.stringify({ error: 'Failed to check status' }),
             { 
@@ -192,12 +220,17 @@ serve(async (req) => {
         }
 
         const statusData = await statusResponse.json()
+        console.log('Status response:', statusData)
+        
         const isConnected = statusData.instance?.state === 'open'
         
         // Update database status
         const updateData = {
           status: isConnected ? 'connected' : 'disconnected',
-          ...(isConnected && { connected_at: new Date().toISOString() })
+          ...(isConnected && { 
+            connected_at: new Date().toISOString(),
+            phone: statusData.instance?.owner || '' 
+          })
         }
 
         await supabaseClient
@@ -210,7 +243,8 @@ serve(async (req) => {
           JSON.stringify({ 
             success: true, 
             connected: isConnected,
-            status: statusData.instance?.state 
+            status: statusData.instance?.state,
+            phone: statusData.instance?.owner 
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -220,6 +254,8 @@ serve(async (req) => {
 
       case 'disconnect': {
         const { instanceId } = connectionData
+        
+        console.log('Disconnecting instance:', instanceId)
         
         // Disconnect from Evolution API
         await fetch(`${evolutionBaseUrl}/instance/logout/${instanceId}`, {
