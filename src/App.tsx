@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import AdminMinhaConta from "./pages/AdminMinhaConta";
+import InstrucoesChatbot from "@/pages/InstrucoesChatbot";
 
 const queryClient = new QueryClient();
 
@@ -29,107 +29,122 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/chat" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Chat />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/chat/:chatId" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Chat />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/relatorios" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Relatorios />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/conexoes" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Conexoes />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/base-conhecimento" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <BaseConhecimento />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/minha-conta" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <MinhaConta />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <Admin />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <Admin />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/conversations" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <Admin />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <Admin />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/plans" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <Admin />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/minha-conta" element={
-              <ProtectedRoute requireRole="admin">
-                <AppLayout>
-                  <AdminMinhaConta />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <div className="min-h-screen bg-background">
+              <Routes>
+                <Route path="/" element={<Auth />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/chat" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Chat />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/chat/:chatId" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Chat />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/relatorios" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Relatorios />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/conexoes" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <Conexoes />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/base-conhecimento" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <BaseConhecimento />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/minha-conta" element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <MinhaConta />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/conversations" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/settings" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/plans" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <Admin />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/minha-conta" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AppLayout>
+                      <AdminMinhaConta />
+                    </AppLayout>
+                  </ProtectedRoute>
+                } />
+                <Route 
+                  path="/instrucoes-chatbot" 
+                  element={
+                    <ProtectedRoute>
+                      <div className="flex h-screen">
+                        <AppSidebar />
+                        <InstrucoesChatbot />
+                      </div>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

@@ -11,6 +11,7 @@ import {
 } from './knowledgeBaseService.ts';
 import { buildKnowledgeContext, buildSystemPrompt, buildMessages } from './promptService.ts';
 import { generateOpenAIResponse } from './openaiService.ts';
+import { getActiveInstructions } from './instructionsService.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -43,6 +44,14 @@ serve(async (req) => {
 
     const userId = user.id;
     console.log('Usuário autenticado:', userId);
+
+    // Buscar instruções personalizadas ativas do usuário
+    const personalizedInstructions = await getActiveInstructions(supabase, userId);
+    if (personalizedInstructions) {
+      console.log(`✅ Usando instruções personalizadas para usuário ${userId}: ${personalizedInstructions.persona_name}`);
+    } else {
+      console.log(`ℹ️ Usando instruções padrão para usuário ${userId}`);
+    }
 
     // Extrair palavras-chave da mensagem do usuário
     const keywords = extractKeywords(message);
@@ -88,12 +97,14 @@ serve(async (req) => {
       }
     }
 
-    // Construir contexto e prompt
+    // Construir contexto e prompt com instruções personalizadas
     const knowledgeContext = buildKnowledgeContext(foundDocuments, knowledgeBase);
-    const systemPrompt = buildSystemPrompt(knowledgeBase, knowledgeContext, foundDocuments);
-    const messages = buildMessages(systemPrompt, conversationHistory, message);
+    const systemPrompt = buildSystemPrompt(knowledgeBase, knowledgeContext, foundDocuments, personalizedInstructions);
+    const messages = buildMessages(systemPrompt, conversationHistory,
 
-    console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase} do usuário ${userId}...`);
+)
+
+console.log(`Enviando para OpenAI com contexto da base ${knowledgeBase} do usuário ${userId}...`);
 
     // Gerar resposta da OpenAI
     const aiResponse = await generateOpenAIResponse(messages);
