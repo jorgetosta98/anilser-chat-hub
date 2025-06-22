@@ -69,14 +69,14 @@ export const regularBottomMenuItems = [
 export const adminTopMenuItems = [
   {
     title: "Dashboard",
-    url: "/admin/dashboard",
-    path: "/admin/dashboard",
+    url: "/admin",
+    path: "/admin",
     icon: Home,
   },
   {
     title: "Usuários",
-    url: "/admin/usuarios",
-    path: "/admin/usuarios",
+    url: "/admin/users",
+    path: "/admin/users",
     icon: Users,
   },
 ];
@@ -84,8 +84,8 @@ export const adminTopMenuItems = [
 export const adminBottomMenuItems = [
   {
     title: "Minha Conta",
-    url: "/minha-conta",
-    path: "/minha-conta",
+    url: "/admin/minha-conta",
+    path: "/admin/minha-conta",
     icon: Settings,
   },
   {
@@ -101,20 +101,20 @@ export const adminBottomMenuItems = [
 export const adminMenuItems = [
   {
     title: "Dashboard",
-    url: "/admin/dashboard",
-    path: "/admin/dashboard",
+    url: "/admin",
+    path: "/admin",
     icon: Home,
   },
   {
     title: "Usuários",
-    url: "/admin/usuarios",
-    path: "/admin/usuarios",
+    url: "/admin/users",
+    path: "/admin/users",
     icon: Users,
   },
   {
     title: "Minha Conta",
-    url: "/minha-conta",
-    path: "/minha-conta",
+    url: "/admin/minha-conta",
+    path: "/admin/minha-conta",
     icon: Settings,
   },
 ];
