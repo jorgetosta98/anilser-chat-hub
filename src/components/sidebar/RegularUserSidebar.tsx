@@ -1,5 +1,5 @@
 
-import { MessageSquare, Eye, EyeOff } from "lucide-react";
+import { MessageSquare, Eye, EyeOff, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SidebarMenuItem } from "./SidebarMenuItem";
@@ -8,6 +8,9 @@ import { useConversations } from "@/hooks/useConversations";
 import { useMessages } from "@/hooks/useMessages";
 import { Button } from "@/components/ui/button";
 import { QuickFeedbackModal } from "../modals/QuickFeedbackModal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { ConfirmationModal } from "../modals/ConfirmationModal";
 
 interface RegularUserSidebarProps {
   isCollapsed: boolean;
@@ -16,7 +19,12 @@ interface RegularUserSidebarProps {
 export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
   const [showRecentChats, setShowRecentChats] = useState(true);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const { conversations } = useConversations();
+  const [editingConversation, setEditingConversation] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [deleteConversationId, setDeleteConversationId] = useState<string | null>(null);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
+  
+  const { conversations, updateConversation, deleteConversation } = useConversations();
   const navigate = useNavigate();
   const { chatId } = useParams();
   
@@ -37,6 +45,41 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
     setShowFeedbackModal(false);
     // Após o feedback, redirecionar para a tela inicial
     navigate('/chat');
+  };
+
+  const handleEditStart = (conversationId: string, currentTitle: string) => {
+    setEditingConversation(conversationId);
+    setEditTitle(currentTitle);
+    setOpenPopover(null);
+  };
+
+  const handleEditSave = () => {
+    if (editingConversation && editTitle.trim()) {
+      updateConversation({ id: editingConversation, title: editTitle.trim() });
+      setEditingConversation(null);
+      setEditTitle("");
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingConversation(null);
+    setEditTitle("");
+  };
+
+  const handleDeleteStart = (conversationId: string) => {
+    setDeleteConversationId(conversationId);
+    setOpenPopover(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConversationId) {
+      deleteConversation(deleteConversationId);
+      setDeleteConversationId(null);
+      // Se a conversa sendo deletada é a atual, redirecionar para chat
+      if (chatId === deleteConversationId) {
+        navigate('/chat');
+      }
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -94,15 +137,92 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
             </div>
             <div className="space-y-1 flex-1 relative">
               {conversations.slice(0, 9).map(conversation => (
-                <SidebarMenuItem
-                  key={conversation.id}
-                  item={{
-                    title: conversation.title,
-                    icon: MessageSquare,
-                    path: `/chat/${conversation.id}`
-                  }}
-                  isCollapsed={false}
-                />
+                <div key={conversation.id} className="group relative">
+                  <div 
+                    className={`
+                      p-3 rounded-lg hover:bg-sidebar-accent cursor-pointer transition-colors flex items-center justify-between
+                      ${chatId === conversation.id ? 'bg-sidebar-accent border border-sidebar-border' : ''}
+                    `}
+                    onClick={() => navigate(`/chat/${conversation.id}`)}
+                  >
+                    <div className="flex items-start min-w-0 flex-1">
+                      <MessageSquare className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        {editingConversation === conversation.id ? (
+                          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') handleEditSave();
+                                if (e.key === 'Escape') handleEditCancel();
+                              }}
+                              className="h-6 text-sm"
+                              autoFocus
+                            />
+                            <div className="flex space-x-1">
+                              <Button size="sm" onClick={handleEditSave} className="h-6 px-2 text-xs">
+                                Salvar
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleEditCancel} className="h-6 px-2 text-xs">
+                                Cancelar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h3 className="font-medium text-sidebar-foreground truncate text-sm">
+                              {conversation.title}
+                            </h3>
+                            <p className="text-xs text-sidebar-foreground/60 mt-1">
+                              {formatDate(conversation.updated_at || conversation.created_at || '')}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {editingConversation !== conversation.id && (
+                      <Popover 
+                        open={openPopover === conversation.id} 
+                        onOpenChange={(open) => setOpenPopover(open ? conversation.id : null)}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 hover:bg-sidebar-accent-foreground/10"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-3 h-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-32 p-1" align="end">
+                          <div className="space-y-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start h-8 px-2"
+                              onClick={() => handleEditStart(conversation.id, conversation.title)}
+                            >
+                              <Edit className="w-3 h-3 mr-2" />
+                              Editar
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-start h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteStart(conversation.id)}
+                            >
+                              <Trash2 className="w-3 h-3 mr-2" />
+                              Excluir
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
+                </div>
               ))}
               {conversations.length === 0 && (
                 <div className="text-center py-4 text-sidebar-foreground/70">
@@ -141,6 +261,18 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
         onClose={handleFeedbackClose}
         conversationId={chatId}
         lastMessage={lastMessage}
+      />
+
+      {/* Modal de Confirmação para Exclusão */}
+      <ConfirmationModal
+        isOpen={!!deleteConversationId}
+        onClose={() => setDeleteConversationId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Conversa"
+        description="Tem certeza que deseja excluir esta conversa? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        isDestructive={true}
       />
     </>
   );
