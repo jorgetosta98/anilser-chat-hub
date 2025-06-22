@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { FormModal } from "@/components/modals/FormModal";
 import { useToast } from "@/hooks/use-toast";
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection";
-import { ConnectionNameStep } from "./whatsapp/ConnectionNameStep";
-import { QRCodeStep } from "./whatsapp/QRCodeStep";
-import { SuccessStep } from "./whatsapp/SuccessStep";
+import { ConnectionNameStep } from "./ConnectionNameStep";
+import { QRCodeStep } from "./QRCodeStep";
+import { SuccessStep } from "./SuccessStep";
 
 interface WhatsAppConnectionModalProps {
   isOpen: boolean;
