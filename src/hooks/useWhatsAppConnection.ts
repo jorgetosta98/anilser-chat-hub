@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function useWhatsAppConnection() {
   const [step, setStep] = useState(1);
   const [connectionName, setConnectionName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [instanceId, setInstanceId] = useState("");
@@ -16,6 +16,7 @@ export function useWhatsAppConnection() {
     console.log('Resetando estado do hook');
     setStep(1);
     setConnectionName("");
+    setPhoneNumber("");
     setQrCode("");
     setInstanceId("");
     setConnectionStatus("disconnected");
@@ -26,8 +27,13 @@ export function useWhatsAppConnection() {
     setConnectionName(name);
   }, []);
 
+  const handlePhoneNumberChange = useCallback((phone: string) => {
+    console.log('Número do telefone alterado:', phone);
+    setPhoneNumber(phone);
+  }, []);
+
   const handleStartConnection = useCallback(async () => {
-    console.log('Iniciando conexão com nome:', connectionName);
+    console.log('Iniciando conexão com nome:', connectionName, 'e telefone:', phoneNumber);
     
     if (!connectionName.trim()) {
       toast({
@@ -38,16 +44,25 @@ export function useWhatsAppConnection() {
       return;
     }
 
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Erro",
+        description: "Número de telefone é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      console.log('Criando instância WhatsApp com nome:', connectionName);
+      console.log('Criando instância WhatsApp com nome:', connectionName, 'e telefone:', phoneNumber);
       
       const { data, error } = await supabase.functions.invoke('whatsapp-connection', {
         body: {
           action: 'create_instance',
           connectionData: {
             name: connectionName,
-            phone: ''
+            phone: phoneNumber
           }
         }
       });
@@ -97,7 +112,7 @@ export function useWhatsAppConnection() {
     } finally {
       setIsLoading(false);
     }
-  }, [connectionName, toast]);
+  }, [connectionName, phoneNumber, toast]);
 
   const getQRCode = async (instanceId: string) => {
     try {
@@ -180,7 +195,9 @@ export function useWhatsAppConnection() {
   return {
     step,
     connectionName,
+    phoneNumber,
     setConnectionName: handleConnectionNameChange,
+    setPhoneNumber: handlePhoneNumberChange,
     isLoading,
     qrCode,
     instanceId,

@@ -18,7 +18,9 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
   const {
     step,
     connectionName,
+    phoneNumber,
     setConnectionName,
+    setPhoneNumber,
     isLoading,
     qrCode,
     instanceId,
@@ -42,6 +44,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
         onConnect({
           id: instanceId,
           name: connectionName,
+          phone: phoneNumber,
           status: "connected",
           connectedAt: new Date().toISOString()
         });
@@ -54,7 +57,7 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
 
       return () => clearTimeout(successTimeout);
     }
-  }, [connectionStatus, step, instanceId, connectionName, onConnect, onClose, toast]);
+  }, [connectionStatus, step, instanceId, connectionName, phoneNumber, onConnect, onClose, toast]);
 
   const renderStepContent = () => {
     switch (step) {
@@ -62,7 +65,9 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
         return (
           <ConnectionNameStep
             connectionName={connectionName}
+            phoneNumber={phoneNumber}
             onConnectionNameChange={setConnectionName}
+            onPhoneNumberChange={setPhoneNumber}
           />
         );
 

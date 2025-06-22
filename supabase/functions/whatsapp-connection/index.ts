@@ -57,12 +57,13 @@ serve(async (req) => {
 
     switch (action) {
       case 'create_instance': {
-        const { name } = connectionData
+        const { name, phone } = connectionData
         const instanceId = `safeboy_${user.id}_${Date.now()}`
         
         console.log('Creating Evolution instance:', instanceId)
         console.log('Using Evolution URL:', evolutionBaseUrl)
         console.log('Connection name:', name)
+        console.log('Phone number:', phone)
         
         // Create instance in Evolution API with minimal configuration
         const createPayload = {
@@ -117,7 +118,7 @@ serve(async (req) => {
           .insert({
             user_id: user.id,
             name,
-            phone: '', // Será preenchido após conexão
+            phone: phone || '', // Use the provided phone number
             instance_id: instanceId,
             status: 'created'
           })
@@ -135,13 +136,14 @@ serve(async (req) => {
           )
         }
 
-        // Send webhook notification with connection name
+        // Send webhook notification with connection name and phone number
         try {
-          console.log('Sending webhook notification with connection name:', name)
+          console.log('Sending webhook notification with connection name and phone:', name, phone)
           
           const webhookPayload = {
             event: 'whatsapp_connection_created',
             connection_name: name,
+            phone_number: phone,
             instance_id: instanceId,
             user_id: user.id,
             timestamp: new Date().toISOString()
