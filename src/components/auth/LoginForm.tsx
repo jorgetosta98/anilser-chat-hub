@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginHeader } from "./LoginHeader";
@@ -29,9 +28,8 @@ export function LoginForm() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, profile } = useAuth();
+  const { signIn } = useAuth();
 
   const validateEmail = (email: string): string | undefined => {
     if (!email) return "E-mail é obrigatório";
@@ -107,16 +105,7 @@ export function LoginForm() {
         description: "Redirecionando...",
       });
       
-      // Aguardar um pouco para o profile ser carregado
-      setTimeout(() => {
-        // Verificar role do usuário para redirecionamento
-        if (profile?.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/chat');
-        }
-        setIsLoading(false);
-      }, 1500);
+      // O redirecionamento será feito automaticamente pelo useAuthRedirect
       
     } catch (error) {
       console.error('Erro no login:', error);

@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,13 +15,13 @@ interface AuthLoginFormProps {
 export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [localLoading, setLocalLoading] = useState(false);
-  const { signIn, user, profile } = useAuth();
+  const { signIn } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalLoading(true);
+    setIsLoading(true);
 
     try {
       const { error } = await signIn(loginForm.email, loginForm.password);
@@ -34,6 +33,7 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
           variant: 'destructive',
         });
         setLocalLoading(false);
+        setIsLoading(false);
         return;
       }
 
@@ -43,19 +43,8 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
         description: 'Redirecionando...',
       });
 
-      // Ativar loading da página principal apenas APÓS sucesso
-      setIsLoading(true);
+      // O redirecionamento será feito automaticamente pelo useAuthRedirect
       
-      // Aguardar um pouco para o profile ser carregado
-      setTimeout(() => {
-        // Verificar role do usuário para redirecionamento
-        if (profile?.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/chat');
-        }
-      }, 1000);
-
     } catch (error) {
       console.error('Erro inesperado no login:', error);
       toast({
@@ -64,6 +53,7 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
         variant: 'destructive',
       });
       setLocalLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -86,7 +76,7 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
               value={loginForm.email}
               onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
               placeholder="seu@email.com"
-              disabled={localLoading}
+              disabled={localLoading || isLoading}
             />
           </div>
           <div>
@@ -98,11 +88,11 @@ export function AuthLoginForm({ isLoading, setIsLoading }: AuthLoginFormProps) {
               value={loginForm.password}
               onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
               placeholder="••••••••"
-              disabled={localLoading}
+              disabled={localLoading || isLoading}
             />
           </div>
           <Button type="submit" className="w-full" disabled={localLoading || isLoading}>
-            {localLoading ? 'Verificando...' : 'Entrar'}
+            {localLoading || isLoading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
       </CardContent>
