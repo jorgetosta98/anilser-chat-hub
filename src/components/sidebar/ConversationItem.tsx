@@ -49,22 +49,6 @@ export function ConversationItem({ conversation, onEdit, onDelete }: Conversatio
     setOpenPopover(false);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return 'Hoje';
-    } else if (diffDays === 1) {
-      return 'Ontem';
-    } else if (diffDays < 7) {
-      return `${diffDays} dias atrás`;
-    } else {
-      return date.toLocaleDateString('pt-BR');
-    }
-  };
-
   return (
     <div className="group relative">
       <div 
@@ -74,8 +58,8 @@ export function ConversationItem({ conversation, onEdit, onDelete }: Conversatio
         `}
         onClick={() => navigate(`/chat/${conversation.id}`)}
       >
-        <div className="flex items-start min-w-0 flex-1">
-          <MessageSquare className="w-4 h-4 mt-0.5 mr-2 flex-shrink-0" />
+        <div className="flex items-center min-w-0 flex-1">
+          <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
           <div className="min-w-0 flex-1">
             {editingConversation === conversation.id ? (
               <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
@@ -99,14 +83,9 @@ export function ConversationItem({ conversation, onEdit, onDelete }: Conversatio
                 </div>
               </div>
             ) : (
-              <>
-                <h3 className="font-medium text-sidebar-foreground truncate text-sm">
-                  {conversation.title}
-                </h3>
-                <p className="text-xs text-sidebar-foreground/60 mt-1">
-                  {formatDate(conversation.updated_at || conversation.created_at || '')}
-                </p>
-              </>
+              <h3 className="font-medium text-sidebar-foreground truncate text-sm">
+                {conversation.title}
+              </h3>
             )}
           </div>
         </div>
