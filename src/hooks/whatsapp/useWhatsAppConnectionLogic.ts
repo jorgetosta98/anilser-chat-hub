@@ -2,6 +2,8 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WhatsAppService } from "./whatsappService";
+import { useQRCodeService } from "./qrCodeService";
+import { useStatusService } from "./statusService";
 import type { WhatsAppConnectionState } from "./types";
 
 export function useWhatsAppConnectionLogic(
@@ -9,6 +11,8 @@ export function useWhatsAppConnectionLogic(
   updateState: (updates: Partial<WhatsAppConnectionState>) => void
 ) {
   const { toast } = useToast();
+  const { getQRCode, refreshQRCode: refreshQRCodeService } = useQRCodeService(updateState);
+  const { startStatusCheck } = useStatusService(updateState);
 
   const handleStartConnection = useCallback(async () => {
     console.log('Iniciando conexão com nome:', state.connectionName, 'e telefone:', state.phoneNumber);
@@ -44,6 +48,7 @@ export function useWhatsAppConnectionLogic(
         
         setTimeout(async () => {
           await getQRCode(data.instanceId);
+          startStatusCheck(data.instanceId);
         }, 2000);
       } else {
         toast({
@@ -72,66 +77,11 @@ export function useWhatsAppConnectionLogic(
     } finally {
       updateState({ isLoading: false });
     }
-  }, [state.connectionName, state.phoneNumber, toast, updateState]);
-
-  const getQRCode = async (instanceId: string) => {
-    try {
-      console.log('Buscando QR code para instância:', instanceId);
-      
-      const data = await WhatsAppService.getQRCode(instanceId);
-
-      if (data?.success && data.qrCode) {
-        console.log('QR code recebido');
-        updateState({ qrCode: data.qrCode });
-        startStatusCheck(instanceId);
-      } else {
-        setTimeout(() => getQRCode(instanceId), 3000);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar QR code:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar QR code",
-        variant: "destructive"
-      });
-      setTimeout(() => getQRCode(instanceId), 3000);
-    }
-  };
-
-  const startStatusCheck = (instanceId: string) => {
-    console.log('Iniciando verificação de status para:', instanceId);
-    
-    const checkStatus = async () => {
-      try {
-        const data = await WhatsAppService.checkStatus(instanceId);
-
-        console.log('Status da conexão:', data);
-
-        if (data?.connected) {
-          console.log('WhatsApp conectado com sucesso!');
-          updateState({ 
-            connectionStatus: "connected",
-            step: 3
-          });
-        } else {
-          setTimeout(() => checkStatus(), 3000);
-        }
-      } catch (error) {
-        console.error('Erro ao verificar status:', error);
-        setTimeout(() => checkStatus(), 5000);
-      }
-    };
-
-    setTimeout(checkStatus, 2000);
-  };
+  }, [state.connectionName, state.phoneNumber, toast, updateState, getQRCode, startStatusCheck]);
 
   const refreshQRCode = useCallback(async () => {
-    if (!state.instanceId) return;
-    
-    updateState({ isLoading: true, qrCode: "" });
-    await getQRCode(state.instanceId);
-    updateState({ isLoading: false });
-  }, [state.instanceId, updateState]);
+    await refreshQRCodeService(state.instanceId);
+  }, [state.instanceId, refreshQRCodeService]);
 
   return {
     handleStartConnection,
