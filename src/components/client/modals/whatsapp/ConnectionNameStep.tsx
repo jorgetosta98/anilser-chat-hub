@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Smartphone } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ConnectionNameStepProps {
   connectionName: string;
@@ -9,16 +10,34 @@ interface ConnectionNameStepProps {
 }
 
 export function ConnectionNameStep({ connectionName, onConnectionNameChange }: ConnectionNameStepProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Auto-focus no input quando o componente monta
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('Input value changed:', value);
+    onConnectionNameChange(value);
+  };
+
   return (
     <div className="space-y-4">
       <div>
         <Label htmlFor="connectionName">Nome da Conexão *</Label>
         <Input
+          ref={inputRef}
           id="connectionName"
           value={connectionName}
-          onChange={(e) => onConnectionNameChange(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Ex: Atendimento Principal"
           className="mt-1"
+          autoComplete="off"
+          autoFocus
         />
         <p className="text-sm text-muted-foreground mt-1">
           Este nome ajudará você a identificar a conexão

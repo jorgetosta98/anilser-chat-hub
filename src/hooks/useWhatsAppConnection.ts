@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +12,7 @@ export function useWhatsAppConnection() {
   const { toast } = useToast();
 
   const resetState = () => {
+    console.log('Resetando estado do hook');
     setStep(1);
     setConnectionName("");
     setQrCode("");
@@ -20,7 +20,14 @@ export function useWhatsAppConnection() {
     setConnectionStatus("disconnected");
   };
 
+  const handleConnectionNameChange = (name: string) => {
+    console.log('Nome da conexão alterado:', name);
+    setConnectionName(name);
+  };
+
   const handleStartConnection = async () => {
+    console.log('Iniciando conexão com nome:', connectionName);
+    
     if (!connectionName.trim()) {
       toast({
         title: "Erro",
@@ -156,7 +163,7 @@ export function useWhatsAppConnection() {
   return {
     step,
     connectionName,
-    setConnectionName,
+    setConnectionName: handleConnectionNameChange,
     isLoading,
     qrCode,
     instanceId,
