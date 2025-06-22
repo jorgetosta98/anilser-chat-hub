@@ -88,7 +88,7 @@ export function RegularUserSidebar({ isCollapsed }: RegularUserSidebarProps) {
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) {
-      return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return 'Hoje';
     } else if (diffDays === 1) {
       return 'Ontem';
     } else if (diffDays < 7) {
