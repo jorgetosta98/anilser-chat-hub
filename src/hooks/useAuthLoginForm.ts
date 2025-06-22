@@ -83,7 +83,7 @@ export function useAuthLoginForm() {
       const { error } = await signIn(loginForm.email, loginForm.password);
       
       if (error) {
-        // Stop loading immediately when there's authentication error
+        // Stop loading IMMEDIATELY when there's authentication error
         setIsLoading(false);
         
         toast({

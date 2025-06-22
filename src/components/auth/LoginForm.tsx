@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,14 +84,14 @@ export function LoginForm() {
       return; // Para aqui se a validação falhar, SEM mostrar loading
     }
 
-    // Só ativar loading APÓS validação passar
+    // Só ativar loading APÓS validação local passar
     setIsLoading(true);
     
     try {
       const { error } = await signIn(formData.email, formData.password);
       
       if (error) {
-        // Parar loading imediatamente quando há erro de autenticação
+        // Parar loading IMEDIATAMENTE quando há erro de autenticação
         setIsLoading(false);
         
         toast({
