@@ -18,7 +18,7 @@ export function RememberMeField({ checked, onChange }: RememberMeFieldProps) {
         htmlFor="remember" 
         className="text-sm text-gray-700 cursor-pointer"
       >
-        Lembrar de mim
+        Lembrar de mim e manter conectado
       </label>
     </div>
   );

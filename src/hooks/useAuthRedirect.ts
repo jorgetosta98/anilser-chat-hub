@@ -11,6 +11,7 @@ export function useAuthRedirect() {
     // Só redirecionar se não estiver carregando
     if (!loading) {
       const currentPath = window.location.pathname;
+      const keepLoggedIn = localStorage.getItem('keepLoggedIn') === 'true';
       
       // Se estiver na página de auth e estiver logado, redirecionar
       if ((currentPath === '/auth' || currentPath === '/') && user && profile) {
@@ -23,9 +24,12 @@ export function useAuthRedirect() {
       }
       
       // Se não estiver logado e estiver em página protegida, redirecionar para auth
+      // Mas apenas se não tiver a opção "manter conectado"
       if (!user && !['/auth', '/forgot-password', '/'].includes(currentPath)) {
-        console.log('Redirecionando usuário não autenticado para /auth');
-        navigate('/auth', { replace: true });
+        if (!keepLoggedIn) {
+          console.log('Redirecionando usuário não autenticado para /auth');
+          navigate('/auth', { replace: true });
+        }
       }
     }
   }, [user, profile, loading, navigate]);

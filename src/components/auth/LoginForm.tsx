@@ -95,9 +95,17 @@ export function LoginForm() {
       if (formData.rememberMe) {
         localStorage.setItem('rememberLogin', 'true');
         localStorage.setItem('savedEmail', formData.email);
+        localStorage.setItem('rememberedEmail', formData.email);
+        localStorage.setItem('rememberedPassword', formData.password);
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('keepLoggedIn', 'true');
       } else {
         localStorage.removeItem('rememberLogin');
         localStorage.removeItem('savedEmail');
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('keepLoggedIn');
       }
       
       toast({
@@ -122,8 +130,18 @@ export function LoginForm() {
   useState(() => {
     const rememberLogin = localStorage.getItem('rememberLogin');
     const savedEmail = localStorage.getItem('savedEmail');
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    const rememberedPassword = localStorage.getItem('rememberedPassword'); 
+    const rememberMe = localStorage.getItem('rememberMe') === 'true';
     
-    if (rememberLogin === 'true' && savedEmail) {
+    if (rememberMe && rememberedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: rememberedEmail,
+        password: rememberedPassword || '',
+        rememberMe: true
+      }));
+    } else if (rememberLogin === 'true' && savedEmail) {
       setFormData(prev => ({
         ...prev,
         email: savedEmail,

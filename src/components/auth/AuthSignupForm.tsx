@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Building } from 'lucide-react';
+import { Building, Eye, EyeOff } from 'lucide-react';
 
 interface AuthSignupFormProps {
   isLoading: boolean;
@@ -22,6 +22,8 @@ export function AuthSignupForm({ isLoading, setIsLoading }: AuthSignupFormProps)
     fullName: '',
     company: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { signUp } = useAuth();
   const { toast } = useToast();
@@ -141,25 +143,45 @@ export function AuthSignupForm({ isLoading, setIsLoading }: AuthSignupFormProps)
           </div>
           <div>
             <Label htmlFor="signup-password">Senha</Label>
-            <Input
-              id="signup-password"
-              type="password"
-              required
-              value={signupForm.password}
-              onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                id="signup-password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={signupForm.password}
+                onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
+                placeholder="••••••••"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <div>
             <Label htmlFor="signup-confirm-password">Confirmar senha</Label>
-            <Input
-              id="signup-confirm-password"
-              type="password"
-              required
-              value={signupForm.confirmPassword}
-              onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                id="signup-confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                value={signupForm.confirmPassword}
+                onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
+                placeholder="••••••••"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             Cadastrar
