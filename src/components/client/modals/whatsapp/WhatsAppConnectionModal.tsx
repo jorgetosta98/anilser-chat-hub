@@ -28,9 +28,9 @@ export function WhatsAppConnectionModal({ isOpen, onClose, onConnect }: WhatsApp
     refreshQRCode
   } = useWhatsAppConnection();
 
-  // Reset state when modal opens/closes
+  // Reset state only when modal closes, not when it opens
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
       resetState();
     }
   }, [isOpen, resetState]);

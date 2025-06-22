@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,19 +12,19 @@ export function useWhatsAppConnection() {
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const { toast } = useToast();
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     console.log('Resetando estado do hook');
     setStep(1);
     setConnectionName("");
     setQrCode("");
     setInstanceId("");
     setConnectionStatus("disconnected");
-  };
+  }, []);
 
-  const handleConnectionNameChange = (name: string) => {
+  const handleConnectionNameChange = useCallback((name: string) => {
     console.log('Nome da conexão alterado:', name);
     setConnectionName(name);
-  };
+  }, []);
 
   const handleStartConnection = async () => {
     console.log('Iniciando conexão com nome:', connectionName);
