@@ -48,6 +48,8 @@ export function useWhatsAppConnections() {
 
   const generateQRCode = async (instanceName: string, whatsappNumber: string): Promise<string> => {
     try {
+      console.log('Gerando QR Code para:', { instanceName, whatsappNumber });
+      
       const response = await fetch('https://webhookn8n.vivendodemicrosaas.com.br/webhook/038b58f0-f085-47b5-98c7-cde82fd14391', {
         method: 'POST',
         headers: {
@@ -59,35 +61,83 @@ export function useWhatsAppConnections() {
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('Failed to generate QR code');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      return `data:image/png;base64,${base64}`;
+      // Verificar o tipo de conteúdo da resposta
+      const contentType = response.headers.get('content-type');
+      console.log('Content-Type:', contentType);
+
+      if (contentType?.includes('image/')) {
+        // Se for uma imagem, converter para base64
+        const arrayBuffer = await response.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        return `data:${contentType};base64,${base64}`;
+      } else {
+        // Se for JSON ou texto, tentar parsear
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
+        try {
+          const jsonData = JSON.parse(responseText);
+          if (jsonData.qr_code) {
+            return jsonData.qr_code;
+          } else if (jsonData.image) {
+            return jsonData.image;
+          }
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do JSON:', parseError);
+        }
+        
+        throw new Error('Resposta do webhook não contém QR code válido');
+      }
     } catch (error) {
       console.error('Error generating QR code:', error);
       throw error;
     }
   };
 
-  const checkConnectionStatus = async (): Promise<string> => {
+  const checkConnectionStatus = async (instanceName: string): Promise<string> => {
     try {
+      console.log('Verificando status da conexão para:', instanceName);
+      
       const response = await fetch('https://webhookn8n.vivendodemicrosaas.com.br/webhook/ec5f7a5f-0255-4c76-9397-df81ac442058', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          instance_name: instanceName
+        })
       });
 
+      console.log('Status check response:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to check connection status');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      return `data:image/png;base64,${base64}`;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType?.includes('image/')) {
+        const arrayBuffer = await response.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        return `data:${contentType};base64,${base64}`;
+      } else {
+        const responseText = await response.text();
+        console.log('Status response text:', responseText);
+        
+        try {
+          const jsonData = JSON.parse(responseText);
+          return jsonData.status || 'unknown';
+        } catch {
+          return responseText;
+        }
+      }
     } catch (error) {
       console.error('Error checking connection status:', error);
       throw error;
@@ -99,39 +149,14 @@ export function useWhatsAppConnections() {
 
     setIsLoading(true);
     try {
-      // Generate QR code first
+      console.log('Criando conexão com dados:', connectionData);
+      
+      // Gerar QR code primeiro
       const qrCodeData = await generateQRCode(connectionData.instance_name, connectionData.whatsapp_number);
+      console.log('QR Code gerado com sucesso');
       setQrCode(qrCodeData);
 
-      // Start countdown
-      let timeLeft = 30;
-      setCountdown(timeLeft);
-      
-      const countdownInterval = setInterval(() => {
-        timeLeft -= 1;
-        setCountdown(timeLeft);
-        
-        if (timeLeft <= 0) {
-          clearInterval(countdownInterval);
-          // Check connection status after countdown
-          checkConnectionStatus().then((statusImage) => {
-            setQrCode(statusImage);
-            toast({
-              title: "Status Atualizado",
-              description: "Verifique o novo QR code ou status da conexão",
-            });
-          }).catch((error) => {
-            console.error('Error updating status:', error);
-            toast({
-              title: "Erro",
-              description: "Erro ao verificar status da conexão",
-              variant: "destructive",
-            });
-          });
-        }
-      }, 1000);
-
-      // Save connection to database
+      // Salvar conexão no banco de dados
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .insert({
@@ -149,6 +174,43 @@ export function useWhatsAppConnections() {
         title: "QR Code Gerado",
         description: "Escaneie o QR code com seu WhatsApp para conectar",
       });
+
+      // Iniciar countdown para verificar status
+      let timeLeft = 30;
+      setCountdown(timeLeft);
+      
+      const countdownInterval = setInterval(async () => {
+        timeLeft -= 1;
+        setCountdown(timeLeft);
+        
+        if (timeLeft <= 0) {
+          clearInterval(countdownInterval);
+          try {
+            const statusResult = await checkConnectionStatus(connectionData.instance_name);
+            console.log('Status verificado:', statusResult);
+            
+            // Atualizar status na base de dados
+            await supabase
+              .from('whatsapp_connections')
+              .update({ status: 'connected' })
+              .eq('id', data.id);
+              
+            toast({
+              title: "Status Atualizado",
+              description: "Conexão verificada com sucesso",
+            });
+            
+            await fetchConnections();
+          } catch (error) {
+            console.error('Erro ao verificar status:', error);
+            toast({
+              title: "Erro",
+              description: "Erro ao verificar status da conexão",
+              variant: "destructive",
+            });
+          }
+        }
+      }, 1000);
 
       await fetchConnections();
       return data;
