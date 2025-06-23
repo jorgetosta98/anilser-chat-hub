@@ -73,7 +73,7 @@ export default function Conexoes() {
           </Button>
         </div>
         
-        <Card className="bg-white shadow-sm border border-gray-200">
+        <Card className="shadow-sm border border-gray-200" style={{ backgroundColor: '#F9FAFB' }}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-3">
               <div className="p-2 bg-primary rounded-lg">
@@ -112,14 +112,6 @@ export default function Conexoes() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">Suas Conexões</h3>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setIsModalOpen(true)}
-                    className="text-primary border-primary hover:bg-primary-50"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Nova
-                  </Button>
                 </div>
                 
                 <div className="grid gap-3">
