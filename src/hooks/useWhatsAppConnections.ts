@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +7,7 @@ interface WhatsAppConnection {
   id?: string;
   instance_name: string;
   whatsapp_number: string;
-  status?: 'pending' | 'connected' | 'disconnected' | 'error';
+  status?: string | null;
   connection_data?: any;
   created_at?: string;
   updated_at?: string;
@@ -139,7 +138,7 @@ export function useWhatsAppConnections() {
           user_id: user.id,
           instance_name: connectionData.instance_name,
           whatsapp_number: connectionData.whatsapp_number,
-          status: 'pending' as const
+          status: 'pending'
         })
         .select()
         .single();
