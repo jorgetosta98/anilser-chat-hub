@@ -1,27 +1,34 @@
-import { useState, useEffect } from 'react';
+
+import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatbotInstruction } from '@/types/chatbotInstructions';
+import { useChatbotInstructionFormState } from '@/hooks/useChatbotInstructionFormState';
+import { useChatbotInstructionFormValidation } from '@/hooks/useChatbotInstructionFormValidation';
+import { useChatbotSuggestions } from '@/services/chatbotSuggestionsService';
+import { ChatbotInstructionFormService } from '@/services/chatbotInstructionFormService';
 
 export function useChatbotInstructionForm() {
-  const [formData, setFormData] = useState<ChatbotInstruction>({
-    persona_name: '',
-    persona_description: '',
-    instructions: '',
-    additional_context: '',
-    is_active: true,
-    user_id: '',
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasExistingConfig, setHasExistingConfig] = useState(false);
+  const {
+    formData,
+    isLoading,
+    isSaving,
+    hasExistingConfig,
+    setIsLoading,
+    setIsSaving,
+    setHasExistingConfig,
+    updateFormData,
+    resetFormData,
+  } = useChatbotInstructionFormState();
+
+  const { validateForm } = useChatbotInstructionFormValidation();
+  const { getSuggestedName, getSuggestedDescription } = useChatbotSuggestions();
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({ ...prev, user_id: user.id }));
+      updateFormData({ user_id: user.id });
       fetchExistingInstructions();
     }
   }, [user]);
@@ -31,36 +38,19 @@ export function useChatbotInstructionForm() {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('chatbot_instructions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+      const existingData = await ChatbotInstructionFormService.fetchExistingInstructions(user.id);
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw error;
-      }
-
-      if (data) {
-        setFormData({
-          id: data.id,
-          persona_name: data.persona_name || '',
-          persona_description: data.persona_description || '',
-          instructions: data.instructions || '',
-          additional_context: data.additional_context || '',
-          is_active: data.is_active,
-          user_id: data.user_id,
-        });
+      if (existingData) {
+        resetFormData(existingData);
         setHasExistingConfig(true);
       } else {
         // Se não há configuração existente, sugerir nome da empresa como padrão
-        const suggestedName = getSuggestedChatbotName();
-        setFormData(prev => ({
-          ...prev,
+        const suggestedName = getSuggestedName();
+        const suggestedDescription = getSuggestedDescription();
+        updateFormData({
           persona_name: suggestedName,
-          persona_description: suggestedName ? `Assistente virtual da ${suggestedName}` : '',
-        }));
+          persona_description: suggestedDescription,
+        });
       }
     } catch (error) {
       console.error('Erro ao carregar instruções:', error);
@@ -74,94 +64,26 @@ export function useChatbotInstructionForm() {
     }
   };
 
-  const getSuggestedChatbotName = (): string => {
-    // Pegar o nome da empresa do perfil ou dos metadados do usuário
-    const companyName = profile?.company || user?.user_metadata?.company;
-    
-    if (companyName) {
-      // Se há nome da empresa, usar como "Assistente [Nome da Empresa]"
-      return `Assistente ${companyName}`;
-    }
-    
-    // Caso contrário, usar nome genérico
-    return 'Assistente Virtual';
-  };
-
   const handleInputChange = (field: keyof ChatbotInstruction, value: string | boolean) => {
     if (!user) return;
     
-    setFormData(prev => ({
-      ...prev,
+    updateFormData({
       [field]: value,
       user_id: user.id,
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    if (!user) {
-      toast({
-        title: "Erro de Autenticação",
-        description: "Você precisa estar logado para salvar as configurações.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!formData.persona_name.trim()) {
-      toast({
-        title: "Campo Obrigatório",
-        description: "O nome do chatbot é obrigatório.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!formData.persona_description.trim()) {
-      toast({
-        title: "Campo Obrigatório",
-        description: "A descrição do chatbot é obrigatória.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
+    });
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm(formData)) return;
 
     try {
       setIsSaving(true);
       
-      const dataToSave = {
-        persona_name: formData.persona_name.trim(),
-        persona_description: formData.persona_description.trim(),
-        instructions: formData.instructions.trim(),
-        additional_context: formData.additional_context.trim(),
-        is_active: formData.is_active,
-        user_id: user!.id,
-      };
-
-      let result;
-
-      if (hasExistingConfig && formData.id) {
-        // Atualizar configuração existente
-        result = await supabase
-          .from('chatbot_instructions')
-          .update(dataToSave)
-          .eq('id', formData.id)
-          .eq('user_id', user!.id)
-          .select()
-          .single();
-      } else {
-        // Criar nova configuração
-        result = await supabase
-          .from('chatbot_instructions')
-          .insert(dataToSave)
-          .select()
-          .single();
-      }
+      const result = await ChatbotInstructionFormService.saveInstructions(
+        formData,
+        hasExistingConfig,
+        user!.id
+      );
 
       if (result.error) {
         throw result.error;
@@ -169,10 +91,7 @@ export function useChatbotInstructionForm() {
 
       // Atualizar o estado local com os dados salvos
       if (result.data) {
-        setFormData(prev => ({
-          ...prev,
-          id: result.data.id,
-        }));
+        updateFormData({ id: result.data.id });
         setHasExistingConfig(true);
       }
 
@@ -199,10 +118,11 @@ export function useChatbotInstructionForm() {
     if (hasExistingConfig) {
       fetchExistingInstructions();
     } else {
-      const suggestedName = getSuggestedChatbotName();
-      setFormData({
+      const suggestedName = getSuggestedName();
+      const suggestedDescription = getSuggestedDescription();
+      resetFormData({
         persona_name: suggestedName,
-        persona_description: suggestedName ? `Assistente virtual da ${suggestedName.replace('Assistente ', '')}` : '',
+        persona_description: suggestedDescription,
         instructions: '',
         additional_context: '',
         is_active: true,
