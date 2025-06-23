@@ -24,11 +24,11 @@ export function useChatbotInstructionsValidation() {
       return false;
     }
 
-    // Validar persona_name
+    // Validar persona_name (nome do chatbot)
     if (!data.persona_name || data.persona_name.trim() === '') {
       toast({
         title: "Campo Obrigatório",
-        description: "O nome da persona é obrigatório.",
+        description: "O nome do chatbot é obrigatório.",
         variant: "destructive",
       });
       return false;
@@ -37,7 +37,7 @@ export function useChatbotInstructionsValidation() {
     if (data.persona_name.trim().length < 2) {
       toast({
         title: "Erro de Validação",
-        description: "O nome da persona deve ter pelo menos 2 caracteres.",
+        description: "O nome do chatbot deve ter pelo menos 2 caracteres.",
         variant: "destructive",
       });
       return false;
@@ -46,17 +46,17 @@ export function useChatbotInstructionsValidation() {
     if (data.persona_name.trim().length > 100) {
       toast({
         title: "Erro de Validação",
-        description: "O nome da persona deve ter no máximo 100 caracteres.",
+        description: "O nome do chatbot deve ter no máximo 100 caracteres.",
         variant: "destructive",
       });
       return false;
     }
 
-    // Validar persona_description
+    // Validar persona_description (descrição do chatbot)
     if (!data.persona_description || data.persona_description.trim() === '') {
       toast({
         title: "Campo Obrigatório",
-        description: "A descrição da persona é obrigatória.",
+        description: "A descrição do chatbot é obrigatória.",
         variant: "destructive",
       });
       return false;
@@ -65,7 +65,7 @@ export function useChatbotInstructionsValidation() {
     if (data.persona_description.trim().length < 10) {
       toast({
         title: "Erro de Validação",
-        description: "A descrição da persona deve ter pelo menos 10 caracteres.",
+        description: "A descrição do chatbot deve ter pelo menos 10 caracteres.",
         variant: "destructive",
       });
       return false;
@@ -74,7 +74,7 @@ export function useChatbotInstructionsValidation() {
     if (data.persona_description.trim().length > 500) {
       toast({
         title: "Erro de Validação",
-        description: "A descrição da persona deve ter no máximo 500 caracteres.",
+        description: "A descrição do chatbot deve ter no máximo 500 caracteres.",
         variant: "destructive",
       });
       return false;
@@ -95,18 +95,6 @@ export function useChatbotInstructionsValidation() {
         toast({
           title: "Erro de Validação",
           description: "As instruções devem ter no máximo 2000 caracteres.",
-          variant: "destructive",
-        });
-        return false;
-      }
-    }
-
-    // Validar contexto adicional (opcional, mas se fornecido deve ter tamanho mínimo)
-    if (data.additional_context && data.additional_context.trim().length > 0) {
-      if (data.additional_context.trim().length > 2000) {
-        toast({
-          title: "Erro de Validação",
-          description: "O contexto adicional deve ter no máximo 2000 caracteres.",
           variant: "destructive",
         });
         return false;

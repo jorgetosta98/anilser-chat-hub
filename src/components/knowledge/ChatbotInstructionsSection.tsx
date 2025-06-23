@@ -23,7 +23,7 @@ interface ChatbotInstruction {
 
 export function ChatbotInstructionsSection() {
   const [formData, setFormData] = useState<ChatbotInstruction>({
-    persona_name: 'SafeBoy',
+    persona_name: '',
     persona_description: 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
     instructions: '',
     additional_context: '',
@@ -62,7 +62,7 @@ export function ChatbotInstructionsSection() {
       if (data) {
         setFormData({
           id: data.id,
-          persona_name: data.persona_name || 'SafeBoy',
+          persona_name: data.persona_name || '',
           persona_description: data.persona_description || 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
           instructions: data.instructions || '',
           additional_context: data.additional_context || '',
@@ -106,7 +106,7 @@ export function ChatbotInstructionsSection() {
     if (!formData.persona_name.trim()) {
       toast({
         title: "Campo Obrigatório",
-        description: "O nome da persona é obrigatório.",
+        description: "O nome do chatbot é obrigatório.",
         variant: "destructive",
       });
       return false;
@@ -115,7 +115,7 @@ export function ChatbotInstructionsSection() {
     if (!formData.persona_description.trim()) {
       toast({
         title: "Campo Obrigatório",
-        description: "A descrição da persona é obrigatória.",
+        description: "A descrição do chatbot é obrigatória.",
         variant: "destructive",
       });
       return false;
@@ -196,7 +196,7 @@ export function ChatbotInstructionsSection() {
       fetchExistingInstructions();
     } else {
       setFormData({
-        persona_name: 'SafeBoy',
+        persona_name: '',
         persona_description: 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
         instructions: '',
         additional_context: '',
@@ -250,18 +250,18 @@ export function ChatbotInstructionsSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="persona_name">Nome da Persona *</Label>
+                <Label htmlFor="persona_name">Nome do Chatbot *</Label>
                 <Input
                   id="persona_name"
                   value={formData.persona_name}
                   onChange={(e) => handleInputChange('persona_name', e.target.value)}
-                  placeholder="Ex: SafeBoy, AssistenteTech..."
+                  placeholder="Digite o nome do seu chatbot..."
                   disabled={!user}
                 />
               </div>
 
               <div>
-                <Label htmlFor="persona_description">Descrição da Persona *</Label>
+                <Label htmlFor="persona_description">Descrição do Chatbot *</Label>
                 <Textarea
                   id="persona_description"
                   value={formData.persona_description}
@@ -291,21 +291,12 @@ export function ChatbotInstructionsSection() {
                   value={formData.instructions}
                   onChange={(e) => handleInputChange('instructions', e.target.value)}
                   placeholder="Instruções específicas sobre como o chatbot deve se comportar..."
-                  className="h-32"
+                  className="h-40"
                   disabled={!user}
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="additional_context">Contexto Adicional da Empresa</Label>
-                <Textarea
-                  id="additional_context"
-                  value={formData.additional_context}
-                  onChange={(e) => handleInputChange('additional_context', e.target.value)}
-                  placeholder="Informações específicas sobre sua empresa que o chatbot deve conhecer..."
-                  className="h-32"
-                  disabled={!user}
-                />
+                <p className="text-sm text-gray-500 mt-1">
+                  O chatbot já terá acesso ao conhecimento da sua base de dados automaticamente.
+                </p>
               </div>
             </div>
           </div>
