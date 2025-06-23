@@ -40,14 +40,31 @@ export function useDocumentFormSubmission({
   const { validateForm } = useDocumentFormValidation();
   const { user } = useAuth();
 
+  // Função para sanitizar o nome do arquivo
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por underscore
+      .replace(/_{2,}/g, '_') // Remove underscores múltiplos
+      .toLowerCase();
+  };
+
   const uploadFileToStorage = async (file: File): Promise<string> => {
-    const fileName = `${Date.now()}-${file.name}`;
+    const sanitizedFileName = sanitizeFileName(file.name);
+    const fileName = `${Date.now()}-${sanitizedFileName}`;
+    
+    console.log('Original filename:', file.name);
+    console.log('Sanitized filename:', fileName);
     
     const { data, error } = await supabase.storage
       .from('knowledge-documents')
       .upload(fileName, file);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
 
     const { data: urlData } = supabase.storage
       .from('knowledge-documents')
@@ -85,8 +102,10 @@ export function useDocumentFormSubmission({
 
       if (uploadedFile) {
         setIsUploading(true);
+        console.log('Iniciando upload do arquivo:', uploadedFile.name);
         fileUrl = await uploadFileToStorage(uploadedFile);
         fileType = uploadedFile.type;
+        console.log('Upload concluído, URL:', fileUrl);
       }
 
       const documentData = {
@@ -99,15 +118,17 @@ export function useDocumentFormSubmission({
         file_url: fileUrl || null,
         file_type: fileType || null,
         is_public: formData.is_public,
-        user_id: user.id, // Corrigido: usar user_id ao invés de author_id
+        user_id: user.id,
       };
+
+      console.log('Dados do documento para salvar:', documentData);
 
       if (document?.id) {
         const { data, error } = await supabase
           .from('knowledge_documents')
           .update(documentData)
           .eq('id', document.id)
-          .eq('user_id', user.id) // Adicionar filtro por user_id para segurança
+          .eq('user_id', user.id)
           .select()
           .single();
 
@@ -132,6 +153,8 @@ export function useDocumentFormSubmission({
           throw error;
         }
 
+        console.log('Documento criado com sucesso:', data);
+
         toast({
           title: "Documento criado",
           description: "O documento foi criado com sucesso.",
@@ -145,10 +168,9 @@ export function useDocumentFormSubmission({
       
       let errorMessage = "Não foi possível salvar o documento.";
       
-      // Melhor tratamento de erros
       if (error instanceof Error) {
-        if (error.message.includes('permission')) {
-          errorMessage = "Você não tem permissão para salvar este documento.";
+        if (error.message.includes('permission') || error.message.includes('InvalidKey')) {
+          errorMessage = "Erro no upload do arquivo. Verifique se o arquivo é válido.";
         } else if (error.message.includes('validation')) {
           errorMessage = "Dados inválidos. Verifique os campos obrigatórios.";
         } else if (error.message.includes('duplicate')) {
