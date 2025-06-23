@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,7 +17,7 @@ export function useChatbotInstructionForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasExistingConfig, setHasExistingConfig] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -54,6 +53,14 @@ export function useChatbotInstructionForm() {
           user_id: data.user_id,
         });
         setHasExistingConfig(true);
+      } else {
+        // Se não há configuração existente, sugerir nome da empresa como padrão
+        const suggestedName = getSuggestedChatbotName();
+        setFormData(prev => ({
+          ...prev,
+          persona_name: suggestedName,
+          persona_description: suggestedName ? `Assistente virtual da ${suggestedName}` : '',
+        }));
       }
     } catch (error) {
       console.error('Erro ao carregar instruções:', error);
@@ -65,6 +72,19 @@ export function useChatbotInstructionForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getSuggestedChatbotName = (): string => {
+    // Pegar o nome da empresa do perfil ou dos metadados do usuário
+    const companyName = profile?.company || user?.user_metadata?.company;
+    
+    if (companyName) {
+      // Se há nome da empresa, usar como "Assistente [Nome da Empresa]"
+      return `Assistente ${companyName}`;
+    }
+    
+    // Caso contrário, usar nome genérico
+    return 'Assistente Virtual';
   };
 
   const handleInputChange = (field: keyof ChatbotInstruction, value: string | boolean) => {
@@ -179,9 +199,10 @@ export function useChatbotInstructionForm() {
     if (hasExistingConfig) {
       fetchExistingInstructions();
     } else {
+      const suggestedName = getSuggestedChatbotName();
       setFormData({
-        persona_name: '',
-        persona_description: '',
+        persona_name: suggestedName,
+        persona_description: suggestedName ? `Assistente virtual da ${suggestedName.replace('Assistente ', '')}` : '',
         instructions: '',
         additional_context: '',
         is_active: true,

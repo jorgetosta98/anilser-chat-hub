@@ -3,8 +3,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Lightbulb } from 'lucide-react';
 import { ChatbotInstruction } from '@/types/chatbotInstructions';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ChatbotInstructionFormProps {
   formData: ChatbotInstruction;
@@ -13,6 +14,11 @@ interface ChatbotInstructionFormProps {
 }
 
 export function ChatbotInstructionForm({ formData, onInputChange, user }: ChatbotInstructionFormProps) {
+  const { profile } = useAuth();
+  
+  // Pegar o nome da empresa para mostrar dica
+  const companyName = profile?.company || user?.user_metadata?.company;
+
   return (
     <>
       {!user && (
@@ -25,6 +31,20 @@ export function ChatbotInstructionForm({ formData, onInputChange, user }: Chatbo
         </div>
       )}
 
+      {/* Dica sobre nome da empresa */}
+      {user && companyName && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-2">
+          <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5" />
+          <div>
+            <p className="text-blue-800 font-medium">Dica Personalizada</p>
+            <p className="text-blue-700 text-sm">
+              Detectamos que sua empresa é <strong>{companyName}</strong>. 
+              Considere usar nomes como "Assistente {companyName}" ou "{companyName} Bot" para maior personalização.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
@@ -33,9 +53,12 @@ export function ChatbotInstructionForm({ formData, onInputChange, user }: Chatbo
               id="persona_name"
               value={formData.persona_name}
               onChange={(e) => onInputChange('persona_name', e.target.value)}
-              placeholder="Digite o nome do seu chatbot..."
+              placeholder={companyName ? `Ex: Assistente ${companyName}` : "Digite o nome do seu chatbot..."}
               disabled={!user}
             />
+            <p className="text-sm text-gray-500 mt-1">
+              Este será o nome que aparecerá nas conversas com os usuários.
+            </p>
           </div>
 
           <div>
@@ -44,10 +67,13 @@ export function ChatbotInstructionForm({ formData, onInputChange, user }: Chatbo
               id="persona_description"
               value={formData.persona_description}
               onChange={(e) => onInputChange('persona_description', e.target.value)}
-              placeholder="Descreva brevemente quem é seu assistente virtual..."
+              placeholder={companyName ? `Ex: Assistente virtual da ${companyName}, especializado em...` : "Descreva brevemente quem é seu assistente virtual..."}
               className="h-24"
               disabled={!user}
             />
+            <p className="text-sm text-gray-500 mt-1">
+              Uma breve descrição sobre a personalidade e função do seu chatbot.
+            </p>
           </div>
 
           <div className="flex items-center space-x-2">
