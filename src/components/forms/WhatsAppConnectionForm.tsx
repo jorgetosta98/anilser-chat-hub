@@ -45,7 +45,7 @@ export function WhatsAppConnectionForm({ onSuccess }: WhatsAppConnectionFormProp
     });
 
     if (result && onSuccess) {
-      onSuccess();
+      // Don't close the modal immediately, let user see the QR code
       setInstanceName('');
       setWhatsappNumber('');
       setErrors({});
@@ -108,7 +108,7 @@ export function WhatsAppConnectionForm({ onSuccess }: WhatsAppConnectionFormProp
         className="w-full bg-primary hover:bg-primary-700"
         disabled={isLoading}
       >
-        {isLoading ? 'Conectando...' : 'Conectar WhatsApp'}
+        {isLoading ? 'Gerando QR Code...' : 'Conectar WhatsApp'}
       </Button>
     </form>
   );

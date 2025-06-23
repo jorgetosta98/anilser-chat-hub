@@ -5,19 +5,23 @@ import { MessageSquare, ArrowRight, Smartphone, Plus, Trash2 } from "lucide-reac
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { WhatsAppConnectionForm } from "@/components/forms/WhatsAppConnectionForm";
+import { WhatsAppQRCode } from "@/components/WhatsAppQRCode";
 import { useWhatsAppConnections } from "@/hooks/useWhatsAppConnections";
 import { Badge } from "@/components/ui/badge";
 
 export default function Conexoes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { connections, isLoading, fetchConnections, deleteConnection } = useWhatsAppConnections();
+  const { connections, isLoading, qrCode, countdown, fetchConnections, deleteConnection, clearQRCode } = useWhatsAppConnections();
 
   useEffect(() => {
     fetchConnections();
   }, []);
 
   const handleConnectionSuccess = () => {
-    setIsModalOpen(false);
+    // Don't close modal immediately when QR code is shown
+    if (!qrCode) {
+      setIsModalOpen(false);
+    }
     fetchConnections();
   };
 
@@ -25,6 +29,11 @@ export default function Conexoes() {
     if (window.confirm('Tem certeza que deseja remover esta conexão?')) {
       await deleteConnection(id);
     }
+  };
+
+  const handleCloseQRCode = () => {
+    clearQRCode();
+    setIsModalOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -138,6 +147,13 @@ export default function Conexoes() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* QR Code Modal */}
+        <WhatsAppQRCode 
+          qrCode={qrCode}
+          countdown={countdown}
+          onClose={handleCloseQRCode}
+        />
       </div>
     </div>
   );
