@@ -27,7 +27,7 @@ export function AILoading({ message, className = "" }: AILoadingProps) {
     loadChatbotConfig();
   }, [user, fetchInstructions]);
 
-  const defaultMessage = `${chatbotName} está pensando...`;
+  const defaultMessage = `${chatbotName} está processando...`;
   const displayMessage = message || defaultMessage;
 
   return (
