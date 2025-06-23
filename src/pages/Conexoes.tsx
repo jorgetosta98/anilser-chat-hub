@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ArrowRight, Smartphone, Plus, Trash2 } from "lucide-react";
@@ -11,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function Conexoes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { connections, isLoading, qrCode, countdown, fetchConnections, deleteConnection, clearQRCode } = useWhatsAppConnections();
+  const { connections, isLoading, qrCode, countdown, fetchConnections, createConnection, deleteConnection, clearQRCode } = useWhatsAppConnections();
 
   console.log('Conexoes render - qrCode:', qrCode ? 'presente' : 'vazio');
   console.log('Conexoes render - countdown:', countdown);
@@ -148,7 +147,11 @@ export default function Conexoes() {
               <DialogTitle>Nova Conexão WhatsApp</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <WhatsAppConnectionForm onSuccess={handleConnectionSuccess} />
+              <WhatsAppConnectionForm 
+                onSuccess={handleConnectionSuccess}
+                createConnection={createConnection}
+                isLoading={isLoading}
+              />
             </div>
           </DialogContent>
         </Dialog>

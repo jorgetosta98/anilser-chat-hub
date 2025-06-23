@@ -3,18 +3,18 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
+import { WhatsAppConnection } from '@/types/whatsapp';
 
 interface WhatsAppConnectionFormProps {
   onSuccess?: () => void;
+  createConnection: (connectionData: Omit<WhatsAppConnection, 'id'>) => Promise<WhatsAppConnection | null>;
+  isLoading: boolean;
 }
 
-export function WhatsAppConnectionForm({ onSuccess }: WhatsAppConnectionFormProps) {
+export function WhatsAppConnectionForm({ onSuccess, createConnection, isLoading }: WhatsAppConnectionFormProps) {
   const [instanceName, setInstanceName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [errors, setErrors] = useState<{ instanceName?: string; whatsappNumber?: string }>({});
-  
-  const { createConnection, isLoading } = useWhatsAppConnections();
 
   const validateForm = () => {
     const newErrors: { instanceName?: string; whatsappNumber?: string } = {};
@@ -49,6 +49,7 @@ export function WhatsAppConnectionForm({ onSuccess }: WhatsAppConnectionFormProp
       setInstanceName('');
       setWhatsappNumber('');
       setErrors({});
+      onSuccess();
     }
   };
 
