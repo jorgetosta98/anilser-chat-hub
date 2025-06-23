@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,8 @@ import { useAI } from "@/hooks/useAI";
 import { useConversations } from "@/hooks/useConversations";
 import { useNavigate } from "react-router-dom";
 import { useKnowledgeBase, KnowledgeBaseType } from "@/hooks/useKnowledgeBase";
+import { useChatbotInstructions } from "@/hooks/useChatbotInstructions";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MessageInputProps {
   conversationId: string | null;
@@ -16,6 +19,7 @@ interface MessageInputProps {
 
 export function MessageInput({ conversationId, isViewingChat = false }: MessageInputProps) {
   const [message, setMessage] = useState("");
+  const [chatbotName, setChatbotName] = useState("Assistente");
   const { addMessage, isAddingMessage, messages } = useMessages(conversationId);
   const { generateResponse, isGenerating } = useAI();
   const { createConversation } = useConversations();
@@ -26,6 +30,21 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
     getSelectedKnowledgeBase,
     knowledgeBases 
   } = useKnowledgeBase();
+  const { fetchInstructions } = useChatbotInstructions();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const loadChatbotConfig = async () => {
+      if (user) {
+        const instructions = await fetchInstructions();
+        if (instructions && instructions.persona_name) {
+          setChatbotName(instructions.persona_name);
+        }
+      }
+    };
+    
+    loadChatbotConfig();
+  }, [user, fetchInstructions]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || isAddingMessage || isGenerating) return;
@@ -121,7 +140,7 @@ export function MessageInput({ conversationId, isViewingChat = false }: MessageI
         </div>
         {isLoading && (
           <div className="text-center mt-2 text-sm text-gray-500">
-            {isGenerating ? "SafeBoy está pensando..." : "Enviando mensagem..."}
+            {isGenerating ? `${chatbotName} está pensando...` : "Enviando mensagem..."}
           </div>
         )}
       </div>
