@@ -1,14 +1,8 @@
 
 import { useToast } from '@/hooks/use-toast';
+import { ChatbotInstruction } from '@/types/chatbotInstructions';
 
-interface ChatbotInstructionData {
-  persona_name: string;
-  persona_description: string;
-  instructions: string;
-  additional_context: string;
-  is_active: boolean;
-  user_id: string;
-}
+type ChatbotInstructionData = Omit<ChatbotInstruction, 'id' | 'created_at' | 'updated_at'>;
 
 export function useChatbotInstructionsValidation() {
   const { toast } = useToast();

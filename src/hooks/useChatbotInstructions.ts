@@ -1,21 +1,11 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChatbotInstructionsValidation } from './useChatbotInstrucionsValidation';
-
-export interface ChatbotInstruction {
-  id?: string;
-  persona_name: string;
-  persona_description: string;
-  instructions: string;
-  additional_context: string;
-  is_active: boolean;
-  user_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { ChatbotInstruction } from '@/types/chatbotInstructions';
+import { ChatbotInstructionsService } from '@/services/chatbotInstructionsService';
+import { getChatbotInstructionsErrorMessage } from '@/utils/chatbotInstructionsErrors';
 
 export function useChatbotInstructions() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,22 +22,7 @@ export function useChatbotInstructions() {
 
     try {
       setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from('chatbot_instructions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erro ao buscar instruções:', error);
-        throw error;
-      }
-
-      return data;
+      return await ChatbotInstructionsService.fetchActiveInstructions(user.id);
     } catch (error) {
       console.error('Erro ao carregar instruções do chatbot:', error);
       toast({
@@ -87,36 +62,7 @@ export function useChatbotInstructions() {
         return null;
       }
 
-      let result;
-
-      if (existingId) {
-        // Atualizar instrução existente
-        result = await supabase
-          .from('chatbot_instructions')
-          .update(sanitizedData)
-          .eq('id', existingId)
-          .eq('user_id', user.id)
-          .select()
-          .single();
-      } else {
-        // Desativar instruções anteriores
-        await supabase
-          .from('chatbot_instructions')
-          .update({ is_active: false })
-          .eq('user_id', user.id);
-
-        // Criar nova instrução
-        result = await supabase
-          .from('chatbot_instructions')
-          .insert(sanitizedData)
-          .select()
-          .single();
-      }
-
-      if (result.error) {
-        console.error('Erro do Supabase ao salvar:', result.error);
-        throw result.error;
-      }
+      const result = await ChatbotInstructionsService.saveInstructions(sanitizedData, existingId);
 
       toast({
         title: "Configurações Salvas",
@@ -125,21 +71,11 @@ export function useChatbotInstructions() {
           : "As configurações do chatbot foram criadas com sucesso!",
       });
 
-      return result.data;
+      return result;
     } catch (error) {
       console.error('Erro ao salvar instruções do chatbot:', error);
       
-      let errorMessage = "Não foi possível salvar as configurações. Tente novamente.";
-      
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate key')) {
-          errorMessage = "Já existe uma configuração ativa. Tente atualizar a configuração existente.";
-        } else if (error.message.includes('permission')) {
-          errorMessage = "Você não tem permissão para salvar essas configurações.";
-        } else if (error.message.includes('validation')) {
-          errorMessage = "Dados inválidos. Verifique os campos obrigatórios.";
-        }
-      }
+      const errorMessage = getChatbotInstructionsErrorMessage(error);
 
       toast({
         title: "Erro ao Salvar",
@@ -165,16 +101,7 @@ export function useChatbotInstructions() {
 
     try {
       setIsLoading(true);
-
-      const { error } = await supabase
-        .from('chatbot_instructions')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        throw error;
-      }
+      await ChatbotInstructionsService.deleteInstructions(id, user.id);
 
       toast({
         title: "Configuração Removida",

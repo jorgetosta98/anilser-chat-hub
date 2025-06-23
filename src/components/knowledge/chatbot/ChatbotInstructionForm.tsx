@@ -4,16 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { AlertCircle } from 'lucide-react';
-
-interface ChatbotInstruction {
-  id?: string;
-  persona_name: string;
-  persona_description: string;
-  instructions: string;
-  additional_context: string;
-  is_active: boolean;
-  user_id: string;
-}
+import { ChatbotInstruction } from '@/types/chatbotInstructions';
 
 interface ChatbotInstructionFormProps {
   formData: ChatbotInstruction;

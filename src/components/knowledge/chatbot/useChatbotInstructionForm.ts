@@ -3,16 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface ChatbotInstruction {
-  id?: string;
-  persona_name: string;
-  persona_description: string;
-  instructions: string;
-  additional_context: string;
-  is_active: boolean;
-  user_id: string;
-}
+import { ChatbotInstruction } from '@/types/chatbotInstructions';
 
 export function useChatbotInstructionForm() {
   const [formData, setFormData] = useState<ChatbotInstruction>({
