@@ -62,10 +62,12 @@ export function useWhatsAppConnections() {
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      console.log('Response ok:', response.ok);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Response error text:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       // Verificar o tipo de conteúdo da resposta
@@ -78,22 +80,43 @@ export function useWhatsAppConnections() {
         const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
         return `data:${contentType};base64,${base64}`;
       } else {
-        // Se for JSON ou texto, tentar parsear
+        // Se for JSON ou texto
         const responseText = await response.text();
-        console.log('Response text:', responseText);
+        console.log('Response text length:', responseText.length);
+        console.log('Response text:', responseText.substring(0, 200)); // Primeiros 200 caracteres
+        
+        // Verificar se a resposta está vazia
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('Webhook retornou resposta vazia. Verifique se o webhook está funcionando corretamente.');
+        }
         
         try {
           const jsonData = JSON.parse(responseText);
+          console.log('Parsed JSON:', jsonData);
+          
           if (jsonData.qr_code) {
             return jsonData.qr_code;
           } else if (jsonData.image) {
             return jsonData.image;
+          } else if (jsonData.qrcode) {
+            return jsonData.qrcode;
+          } else if (jsonData.data && jsonData.data.qr_code) {
+            return jsonData.data.qr_code;
+          } else {
+            console.error('Estrutura do JSON não reconhecida:', Object.keys(jsonData));
+            throw new Error('Resposta do webhook não contém QR code em nenhum campo conhecido (qr_code, image, qrcode, data.qr_code)');
           }
         } catch (parseError) {
           console.error('Erro ao fazer parse do JSON:', parseError);
+          console.error('Texto da resposta que causou erro:', responseText);
+          
+          // Se não conseguir fazer parse, pode ser que a resposta seja uma URL ou base64 diretamente
+          if (responseText.startsWith('data:image/') || responseText.startsWith('http')) {
+            return responseText;
+          }
+          
+          throw new Error(`Erro ao processar resposta do webhook: ${parseError.message}`);
         }
-        
-        throw new Error('Resposta do webhook não contém QR code válido');
       }
     } catch (error) {
       console.error('Error generating QR code:', error);
@@ -216,9 +239,15 @@ export function useWhatsAppConnections() {
       return data;
     } catch (error) {
       console.error('Error creating WhatsApp connection:', error);
+      
+      let errorMessage = "Erro ao gerar QR code do WhatsApp";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro",
-        description: "Erro ao gerar QR code do WhatsApp",
+        description: errorMessage,
         variant: "destructive",
       });
       return null;
