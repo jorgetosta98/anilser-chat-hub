@@ -111,6 +111,14 @@ export async function checkConnectionStatus(instanceName: string): Promise<Whats
     }
     
     try {
+      // Se a resposta for apenas "open" ou "close", criar o objeto esperado
+      if (responseText.trim() === 'open') {
+        return { connectionStatus: 'open' };
+      } else if (responseText.trim() === 'close') {
+        return { connectionStatus: 'close' };
+      }
+      
+      // Tentar fazer parse como JSON
       const jsonData: WhatsAppStatusResponse = JSON.parse(responseText);
       console.log('Status parsed JSON:', jsonData);
       return jsonData;
