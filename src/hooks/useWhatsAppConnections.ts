@@ -55,7 +55,7 @@ export function useWhatsAppConnections() {
 
       // Iniciar countdown para verificar status
       setCountdown(30);
-      console.log('Countdown iniciado: 30 seconds');
+      console.log('Countdown iniciado: 30 segundos');
       
       const cleanup = createCountdownTimer(
         30,
@@ -72,17 +72,17 @@ export function useWhatsAppConnections() {
             // Verificar se o status é "open" (conectado) ou "close" (desconectado)
             if (statusResult.connectionStatus === 'open') {
               // Conexão bem-sucedida
-              console.log('Conexão bem-sucedida!');
+              console.log('✅ Conexão bem-sucedida! Status: open');
               
-              // Atualizar status na base de dados para "conectando"
-              await dbUpdateConnection(data.id!, { status: 'conectando' });
+              // Atualizar status na base de dados para "connected"
+              await dbUpdateConnection(data.id!, { status: 'connected' });
               
               // Limpar QR code e fechar modal
               setQrCode('');
               setCountdown(0);
               
               toast({
-                title: "Conexão Estabelecida!",
+                title: "✅ Conexão Estabelecida!",
                 description: "WhatsApp conectado com sucesso",
                 variant: "default",
               });
@@ -90,13 +90,13 @@ export function useWhatsAppConnections() {
               await fetchConnections();
             } else if (statusResult.connectionStatus === 'close') {
               // Conexão falhou
-              console.log('Conexão falhou - status close');
+              console.log('❌ Conexão falhou - Status: close');
               
-              // Atualizar status na base de dados para "desconectado"
-              await dbUpdateConnection(data.id!, { status: 'desconectado' });
+              // Atualizar status na base de dados para "disconnected"
+              await dbUpdateConnection(data.id!, { status: 'disconnected' });
               
               toast({
-                title: "Conexão não Estabelecida",
+                title: "❌ Conexão não Estabelecida",
                 description: "O WhatsApp não foi conectado. Tente novamente.",
                 variant: "destructive",
               });
@@ -104,12 +104,12 @@ export function useWhatsAppConnections() {
               await fetchConnections();
             } else {
               // Status desconhecido
-              console.log('Status desconhecido:', statusResult);
+              console.log('⚠️ Status desconhecido:', statusResult);
               
               await dbUpdateConnection(data.id!, { status: 'error' });
               
               toast({
-                title: "Status Desconhecido",
+                title: "⚠️ Status Desconhecido",
                 description: "Não foi possível verificar o status da conexão",
                 variant: "destructive",
               });
@@ -117,13 +117,13 @@ export function useWhatsAppConnections() {
               await fetchConnections();
             }
           } catch (error) {
-            console.error('Erro ao verificar status:', error);
+            console.error('❌ Erro ao verificar status:', error);
             
             // Em caso de erro na verificação, atualizar para erro
             await dbUpdateConnection(data.id!, { status: 'error' });
             
             toast({
-              title: "Erro na Verificação",
+              title: "❌ Erro na Verificação",
               description: "Não foi possível verificar o status da conexão",
               variant: "destructive",
             });

@@ -97,7 +97,8 @@ export async function checkConnectionStatus(instanceName: string): Promise<Whats
       })
     });
 
-    console.log('Status check response:', response.status);
+    console.log('Status check response status:', response.status);
+    console.log('Status check response ok:', response.ok);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -110,22 +111,29 @@ export async function checkConnectionStatus(instanceName: string): Promise<Whats
       throw new Error('Webhook de status retornou resposta vazia');
     }
     
+    const trimmedResponse = responseText.trim();
+    console.log('Trimmed response:', trimmedResponse);
+    
+    // O webhook retorna "open" para conectado ou "close" para desconectado
+    if (trimmedResponse === 'open') {
+      console.log('Status detectado: CONECTADO (open)');
+      return { connectionStatus: 'open' };
+    } else if (trimmedResponse === 'close') {
+      console.log('Status detectado: DESCONECTADO (close)');
+      return { connectionStatus: 'close' };
+    }
+    
+    // Tentar fazer parse como JSON se não for "open" ou "close"
     try {
-      // Se a resposta for apenas "open" ou "close", criar o objeto esperado
-      if (responseText.trim() === 'open') {
-        return { connectionStatus: 'open' };
-      } else if (responseText.trim() === 'close') {
-        return { connectionStatus: 'close' };
-      }
-      
-      // Tentar fazer parse como JSON
-      const jsonData: WhatsAppStatusResponse = JSON.parse(responseText);
+      const jsonData: WhatsAppStatusResponse = JSON.parse(trimmedResponse);
       console.log('Status parsed JSON:', jsonData);
       return jsonData;
     } catch (parseError) {
       console.error('Erro ao fazer parse do JSON de status:', parseError);
-      console.error('Texto da resposta de status que causou erro:', responseText);
-      throw new Error(`Erro ao processar resposta do webhook de status: ${parseError instanceof Error ? parseError.message : 'Erro desconhecido'}`);
+      console.error('Texto da resposta de status que causou erro:', trimmedResponse);
+      
+      // Se não conseguir fazer parse, retornar como status desconhecido
+      return { connectionStatus: 'close' };
     }
   } catch (error) {
     console.error('Error checking connection status:', error);
