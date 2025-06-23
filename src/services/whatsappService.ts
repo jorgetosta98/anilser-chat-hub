@@ -1,9 +1,8 @@
-
 import { WhatsAppQRCodeResponse, WhatsAppStatusResponse } from '@/types/whatsapp';
 
-const WEBHOOK_BASE_URL = 'https://webhookn8n.vivendodemicrosaas.com.br/webhook';
-const QR_CODE_WEBHOOK = `${WEBHOOK_BASE_URL}/038b58f0-f085-47b5-98c7-cde82fd14391`;
-const STATUS_CHECK_WEBHOOK = `${WEBHOOK_BASE_URL}/ec5f7a5f-0255-4c76-9397-df81ac442058`;
+const WEBHOOK_BASE_URL = 'https://n8n.vivendodemicrosaas.com.br';
+const QR_CODE_WEBHOOK = `${WEBHOOK_BASE_URL}/webhook-test/038b58f0-f085-47b5-98c7-cde82fd14391`;
+const STATUS_CHECK_WEBHOOK = `${WEBHOOK_BASE_URL}/webhook/ec5f7a5f-0255-4c76-9397-df81ac442058`;
 
 export async function generateQRCode(instanceName: string, whatsappNumber: string): Promise<string> {
   try {
