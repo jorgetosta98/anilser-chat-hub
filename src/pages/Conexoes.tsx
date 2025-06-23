@@ -1,12 +1,47 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ArrowRight, Smartphone, Plus } from "lucide-react";
-import { useState } from "react";
+import { MessageSquare, ArrowRight, Smartphone, Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { WhatsAppConnectionForm } from "@/components/forms/WhatsAppConnectionForm";
+import { useWhatsAppConnections } from "@/hooks/useWhatsAppConnections";
+import { Badge } from "@/components/ui/badge";
 
 export default function Conexoes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { connections, isLoading, fetchConnections, deleteConnection } = useWhatsAppConnections();
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const handleConnectionSuccess = () => {
+    setIsModalOpen(false);
+    fetchConnections();
+  };
+
+  const handleDeleteConnection = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja remover esta conexão?')) {
+      await deleteConnection(id);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pendente' },
+      connected: { color: 'bg-green-100 text-green-800', text: 'Conectado' },
+      disconnected: { color: 'bg-gray-100 text-gray-800', text: 'Desconectado' },
+      error: { color: 'bg-red-100 text-red-800', text: 'Erro' },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return (
+      <Badge className={config.color}>
+        {config.text}
+      </Badge>
+    );
+  };
 
   return (
     <div className="flex-1 p-6" style={{ backgroundColor: '#F9FAFB' }}>
@@ -30,22 +65,59 @@ export default function Conexoes() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-700">
-              Conecte seu número de telefone e converse com o safeboy diretamente pelo seu Whatsapp
+              Conecte seu número de telefone e converse com o assistente diretamente pelo seu WhatsApp
             </p>
             
-            <Button 
-              className="bg-primary hover:bg-primary-700 text-white"
-              onClick={() => setIsModalOpen(true)}
-            >
-              Conectar meu número
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {connections.length === 0 ? (
+              <>
+                <Button 
+                  className="bg-primary hover:bg-primary-700 text-white"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Conectar meu número
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
 
-            <div className="mt-6 text-center text-gray-500">
-              <Smartphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Funcionalidade em desenvolvimento</p>
-              <p className="text-sm">Em breve você poderá conectar seu WhatsApp</p>
-            </div>
+                <div className="mt-6 text-center text-gray-500">
+                  <Smartphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhuma conexão configurada</p>
+                  <p className="text-sm">Clique em "Conectar meu número" para começar</p>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900">Suas Conexões:</h3>
+                {connections.map((connection) => (
+                  <div key={connection.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <p className="font-medium text-gray-900">{connection.instance_name}</p>
+                          <p className="text-sm text-gray-500">{connection.whatsapp_number}</p>
+                        </div>
+                        {getStatusBadge(connection.status || 'pending')}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteConnection(connection.id!)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Nova Conexão
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -59,17 +131,10 @@ export default function Conexoes() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Nova Conexão</DialogTitle>
+              <DialogTitle>Nova Conexão WhatsApp</DialogTitle>
             </DialogHeader>
-            <div className="py-6 text-center">
-              <Smartphone className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold mb-2">Em Desenvolvimento</h3>
-              <p className="text-gray-600 mb-4">
-                A funcionalidade de conexões está sendo desenvolvida e estará disponível em breve.
-              </p>
-              <Button onClick={() => setIsModalOpen(false)}>
-                Entendi
-              </Button>
+            <div className="py-4">
+              <WhatsAppConnectionForm onSuccess={handleConnectionSuccess} />
             </div>
           </DialogContent>
         </Dialog>
