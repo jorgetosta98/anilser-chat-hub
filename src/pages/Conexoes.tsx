@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ArrowRight, Smartphone, Plus, Trash2 } from "lucide-react";
@@ -60,87 +61,97 @@ export default function Conexoes() {
 
   return (
     <div className="flex-1 p-6" style={{ backgroundColor: '#F9FAFB' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Conexões</h1>
-          <Button onClick={() => setIsModalOpen(true)}>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Conexões</h1>
+          <Button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary hover:bg-primary-700 text-white"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Conexão
           </Button>
         </div>
         
-        <Card className="bg-primary-50 border-primary-200">
-          <CardHeader>
+        <Card className="bg-white shadow-sm border border-gray-200">
+          <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-3">
               <div className="p-2 bg-primary rounded-lg">
                 <MessageSquare className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl">WhatsApp</span>
+              <div>
+                <span className="text-xl text-gray-900">WhatsApp</span>
+                <p className="text-sm text-gray-600 font-normal mt-1">
+                  Conecte seu número de telefone e converse com o assistente diretamente pelo seu WhatsApp
+                </p>
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-700">
-              Conecte seu número de telefone e converse com o assistente diretamente pelo seu WhatsApp
-            </p>
-            
+          <CardContent className="pt-0">
             {connections.length === 0 ? (
-              <>
+              <div className="text-center py-8">
+                <div className="w-16 h-16 mx-auto mb-4 p-3 bg-gray-100 rounded-full">
+                  <Smartphone className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Nenhuma conexão configurada
+                </h3>
+                <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+                  Configure sua primeira conexão WhatsApp para começar a usar o assistente
+                </p>
                 <Button 
-                  className="bg-primary hover:bg-primary-700 text-white"
+                  className="bg-primary hover:bg-primary-700 text-white px-6 py-2"
                   onClick={() => setIsModalOpen(true)}
                 >
+                  <MessageSquare className="w-4 h-4 mr-2" />
                   Conectar meu número
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-
-                <div className="mt-6 text-center text-gray-500">
-                  <Smartphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhuma conexão configurada</p>
-                  <p className="text-sm">Clique em "Conectar meu número" para começar</p>
-                </div>
-              </>
+              </div>
             ) : (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900">Suas Conexões:</h3>
-                {connections.map((connection) => (
-                  <div key={connection.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">Suas Conexões</h3>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-primary border-primary hover:bg-primary-50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Nova
+                  </Button>
+                </div>
+                
+                <div className="grid gap-3">
+                  {connections.map((connection) => (
+                    <div key={connection.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                          <MessageSquare className="w-5 h-5 text-primary" />
+                        </div>
                         <div>
                           <p className="font-medium text-gray-900">{connection.instance_name}</p>
-                          <p className="text-sm text-gray-500">{connection.whatsapp_number}</p>
+                          <p className="text-sm text-gray-600">{connection.whatsapp_number}</p>
                         </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
                         {getStatusBadge(connection.status || 'pending')}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteConnection(connection.id!)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteConnection(connection.id!)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsModalOpen(true)}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Nova Conexão
-                </Button>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Empty state for other connections */}
-        <div className="mt-8 text-center text-gray-500">
-          <Smartphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Mais opções de conexão em breve...</p>
-        </div>
 
         {/* Modal Dialog */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
