@@ -24,7 +24,7 @@ interface ChatbotInstruction {
 export function ChatbotInstructionsSection() {
   const [formData, setFormData] = useState<ChatbotInstruction>({
     persona_name: '',
-    persona_description: 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
+    persona_description: '',
     instructions: '',
     additional_context: '',
     is_active: true,
@@ -63,7 +63,7 @@ export function ChatbotInstructionsSection() {
         setFormData({
           id: data.id,
           persona_name: data.persona_name || '',
-          persona_description: data.persona_description || 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
+          persona_description: data.persona_description || '',
           instructions: data.instructions || '',
           additional_context: data.additional_context || '',
           is_active: data.is_active,
@@ -197,7 +197,7 @@ export function ChatbotInstructionsSection() {
     } else {
       setFormData({
         persona_name: '',
-        persona_description: 'Assistente virtual especializado em segurança do trabalho e saúde ocupacional',
+        persona_description: '',
         instructions: '',
         additional_context: '',
         is_active: true,

@@ -41,12 +41,10 @@ export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: strin
 
   // Se há instruções personalizadas, use-as como base
   if (customInstructions) {
-    systemPrompt = `Você é ${customInstructions.persona_name || 'SafeBoy'}`;
+    systemPrompt = `Você é ${customInstructions.persona_name || 'Assistente'}`;
     
     if (customInstructions.persona_description) {
       systemPrompt += `, ${customInstructions.persona_description}`;
-    } else {
-      systemPrompt += ', um assistente virtual especializado em segurança do trabalho e saúde ocupacional';
     }
 
     systemPrompt += '.\n\n';
@@ -60,13 +58,12 @@ export function buildSystemPrompt(knowledgeBase: string, knowledgeContext: strin
     }
   } else {
     // Instruções padrão caso não haja personalizações
-    systemPrompt = `Você é o SafeBoy, um assistente virtual especializado em segurança do trabalho e saúde ocupacional.\n\n`;
+    systemPrompt = `Você é um assistente virtual inteligente.\n\n`;
   }
 
   systemPrompt += `INSTRUÇÕES IMPORTANTES:
 - Responda SEMPRE em português brasileiro
 - Seja preciso e técnico quando necessário
-- Cite normas regulamentadoras (NRs) quando relevante
 - Seja prestativo e educativo
 - Mantenha um tom profissional mas acessível`;
 
@@ -99,7 +96,7 @@ ${foundDocuments.length > 0 ?
       'IMPORTANTE: Use as informações acima das conversas do WhatsApp para responder à pergunta do usuário. Essas são conversas reais da empresa e devem ter prioridade na sua resposta.' :
       'IMPORTANTE: Use as informações acima da base de conhecimento para responder à pergunta do usuário. Essas são informações específicas da empresa e devem ter prioridade na sua resposta.'
     ) : 
-    `Não foram encontradas informações específicas na base ${knowledgeBase === 'whatsapp' ? 'WhatsApp' : 'de conhecimento'} para esta pergunta. Responda com seu conhecimento geral sobre segurança do trabalho.`
+    `Não foram encontradas informações específicas na base ${knowledgeBase === 'whatsapp' ? 'WhatsApp' : 'de conhecimento'} para esta pergunta. Responda com seu conhecimento geral.`
   }`;
 
   return systemPrompt;

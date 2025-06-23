@@ -1,12 +1,35 @@
 
 import { Brain, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useChatbotInstructions } from '@/hooks/useChatbotInstructions';
+import { useEffect, useState } from 'react';
 
 interface AILoadingProps {
   message?: string;
   className?: string;
 }
 
-export function AILoading({ message = "Processando...", className = "" }: AILoadingProps) {
+export function AILoading({ message, className = "" }: AILoadingProps) {
+  const { user } = useAuth();
+  const { fetchInstructions } = useChatbotInstructions();
+  const [chatbotName, setChatbotName] = useState("Assistente");
+  
+  useEffect(() => {
+    const loadChatbotConfig = async () => {
+      if (user) {
+        const instructions = await fetchInstructions();
+        if (instructions && instructions.persona_name) {
+          setChatbotName(instructions.persona_name);
+        }
+      }
+    };
+    
+    loadChatbotConfig();
+  }, [user, fetchInstructions]);
+
+  const defaultMessage = `${chatbotName} está pensando...`;
+  const displayMessage = message || defaultMessage;
+
   return (
     <div 
       className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center space-y-6 ${className}`}
@@ -56,7 +79,7 @@ export function AILoading({ message = "Processando...", className = "" }: AILoad
       {/* Texto do loading */}
       <div className="text-center space-y-3">
         <p className="text-xl font-medium" style={{ color: '#F9FAFB' }}>
-          {message}
+          {displayMessage}
         </p>
         <div className="flex justify-center">
           <div className="flex space-x-2">
