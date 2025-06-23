@@ -20,4 +20,5 @@ export interface WhatsAppQRCodeResponse {
 
 export interface WhatsAppStatusResponse {
   status?: string;
+  connectionStatus?: 'open' | 'close';
 }

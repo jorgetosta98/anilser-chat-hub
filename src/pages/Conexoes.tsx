@@ -44,7 +44,9 @@ export default function Conexoes() {
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pendente' },
       connected: { color: 'bg-green-100 text-green-800', text: 'Conectado' },
+      conectando: { color: 'bg-blue-100 text-blue-800', text: 'Conectando' },
       disconnected: { color: 'bg-gray-100 text-gray-800', text: 'Desconectado' },
+      desconectado: { color: 'bg-red-100 text-red-800', text: 'Desconectado' },
       error: { color: 'bg-red-100 text-red-800', text: 'Erro' },
     };
     

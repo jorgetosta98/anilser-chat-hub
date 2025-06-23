@@ -69,19 +69,66 @@ export function useWhatsAppConnections() {
             const statusResult = await checkConnectionStatus(connectionData.instance_name);
             console.log('Status verificado:', statusResult);
             
-            // Atualizar status na base de dados
-            await dbUpdateConnection(data.id!, { status: 'connected' });
+            // Verificar se o status é "open" (conectado) ou "close" (desconectado)
+            if (statusResult.connectionStatus === 'open') {
+              // Conexão bem-sucedida
+              console.log('Conexão bem-sucedida!');
               
+              // Atualizar status na base de dados para "conectando"
+              await dbUpdateConnection(data.id!, { status: 'conectando' });
+              
+              // Limpar QR code e fechar modal
+              setQrCode('');
+              setCountdown(0);
+              
+              toast({
+                title: "Conexão Estabelecida!",
+                description: "WhatsApp conectado com sucesso",
+                variant: "default",
+              });
+              
+              await fetchConnections();
+            } else if (statusResult.connectionStatus === 'close') {
+              // Conexão falhou
+              console.log('Conexão falhou - status close');
+              
+              // Atualizar status na base de dados para "desconectado"
+              await dbUpdateConnection(data.id!, { status: 'desconectado' });
+              
+              toast({
+                title: "Conexão não Estabelecida",
+                description: "O WhatsApp não foi conectado. Tente novamente.",
+                variant: "destructive",
+              });
+              
+              await fetchConnections();
+            } else {
+              // Status desconhecido
+              console.log('Status desconhecido:', statusResult);
+              
+              await dbUpdateConnection(data.id!, { status: 'error' });
+              
+              toast({
+                title: "Status Desconhecido",
+                description: "Não foi possível verificar o status da conexão",
+                variant: "destructive",
+              });
+              
+              await fetchConnections();
+            }
+          } catch (error) {
+            console.error('Erro ao verificar status:', error);
+            
+            // Em caso de erro na verificação, atualizar para erro
+            await dbUpdateConnection(data.id!, { status: 'error' });
+            
             toast({
-              title: "Status Atualizado",
-              description: "Conexão verificada com sucesso",
+              title: "Erro na Verificação",
+              description: "Não foi possível verificar o status da conexão",
+              variant: "destructive",
             });
             
             await fetchConnections();
-          } catch (error) {
-            console.error('Erro ao verificar status:', error);
-            // Não mostrar erro de verificação de status como erro crítico
-            console.log('Continuando sem verificação de status automática');
           }
         }
       );

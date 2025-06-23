@@ -1,3 +1,4 @@
+
 import { WhatsAppQRCodeResponse, WhatsAppStatusResponse } from '@/types/whatsapp';
 
 const WEBHOOK_BASE_URL = 'https://n8n.vivendodemicrosaas.com.br';
@@ -82,7 +83,7 @@ export async function generateQRCode(instanceName: string, whatsappNumber: strin
   }
 }
 
-export async function checkConnectionStatus(instanceName: string): Promise<string> {
+export async function checkConnectionStatus(instanceName: string): Promise<WhatsAppStatusResponse> {
   try {
     console.log('Verificando status da conexão para:', instanceName);
     
@@ -102,22 +103,21 @@ export async function checkConnectionStatus(instanceName: string): Promise<strin
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const contentType = response.headers.get('content-type');
+    const responseText = await response.text();
+    console.log('Status response text:', responseText);
     
-    if (contentType?.includes('image/')) {
-      const arrayBuffer = await response.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      return `data:${contentType};base64,${base64}`;
-    } else {
-      const responseText = await response.text();
-      console.log('Status response text:', responseText);
-      
-      try {
-        const jsonData: WhatsAppStatusResponse = JSON.parse(responseText);
-        return jsonData.status || 'unknown';
-      } catch {
-        return responseText;
-      }
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('Webhook de status retornou resposta vazia');
+    }
+    
+    try {
+      const jsonData: WhatsAppStatusResponse = JSON.parse(responseText);
+      console.log('Status parsed JSON:', jsonData);
+      return jsonData;
+    } catch (parseError) {
+      console.error('Erro ao fazer parse do JSON de status:', parseError);
+      console.error('Texto da resposta de status que causou erro:', responseText);
+      throw new Error(`Erro ao processar resposta do webhook de status: ${parseError instanceof Error ? parseError.message : 'Erro desconhecido'}`);
     }
   } catch (error) {
     console.error('Error checking connection status:', error);
