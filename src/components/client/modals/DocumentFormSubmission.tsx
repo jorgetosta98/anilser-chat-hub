@@ -92,34 +92,45 @@ export function useDocumentFormSubmission({
       const documentData = {
         title: formData.title.trim(),
         content: formData.content.trim(),
-        summary: formData.summary.trim(),
-        context: formData.context.trim(),
+        summary: formData.summary?.trim() || '',
+        context: formData.context?.trim() || '',
         category_id: formData.category_id || null,
-        tags: formData.tags,
+        tags: formData.tags || [],
         file_url: fileUrl || null,
         file_type: fileType || null,
         is_public: formData.is_public,
-        user_id: user.id,
+        user_id: user.id, // Corrigido: usar user_id ao invés de author_id
       };
 
       if (document?.id) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('knowledge_documents')
           .update(documentData)
-          .eq('id', document.id);
+          .eq('id', document.id)
+          .eq('user_id', user.id) // Adicionar filtro por user_id para segurança
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao atualizar documento:', error);
+          throw error;
+        }
 
         toast({
           title: "Documento atualizado",
           description: "O documento foi atualizado com sucesso.",
         });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('knowledge_documents')
-          .insert(documentData);
+          .insert(documentData)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao criar documento:', error);
+          throw error;
+        }
 
         toast({
           title: "Documento criado",
@@ -131,9 +142,23 @@ export function useDocumentFormSubmission({
       onClose();
     } catch (error) {
       console.error('Error saving document:', error);
+      
+      let errorMessage = "Não foi possível salvar o documento.";
+      
+      // Melhor tratamento de erros
+      if (error instanceof Error) {
+        if (error.message.includes('permission')) {
+          errorMessage = "Você não tem permissão para salvar este documento.";
+        } else if (error.message.includes('validation')) {
+          errorMessage = "Dados inválidos. Verifique os campos obrigatórios.";
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = "Já existe um documento com este título.";
+        }
+      }
+      
       toast({
         title: "Erro",
-        description: "Não foi possível salvar o documento.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
