@@ -38,7 +38,11 @@ export function useWhatsAppConnections() {
       // Gerar QR code primeiro
       const qrCodeData = await generateQRCode(connectionData.instance_name, connectionData.whatsapp_number);
       console.log('QR Code gerado com sucesso');
+      console.log('QR Code data length:', qrCodeData.length);
+      console.log('QR Code starts with:', qrCodeData.substring(0, 50));
+      
       setQrCode(qrCodeData);
+      console.log('QR Code state atualizado');
 
       // Salvar conexão no banco de dados
       const data = await dbCreateConnection(connectionData);
@@ -51,11 +55,16 @@ export function useWhatsAppConnections() {
 
       // Iniciar countdown para verificar status
       setCountdown(30);
+      console.log('Countdown iniciado: 30 seconds');
       
       const cleanup = createCountdownTimer(
         30,
-        (timeLeft) => setCountdown(timeLeft),
+        (timeLeft) => {
+          console.log('Countdown:', timeLeft);
+          setCountdown(timeLeft);
+        },
         async () => {
+          console.log('Countdown finalizado, verificando status...');
           try {
             const statusResult = await checkConnectionStatus(connectionData.instance_name);
             console.log('Status verificado:', statusResult);
@@ -71,11 +80,8 @@ export function useWhatsAppConnections() {
             await fetchConnections();
           } catch (error) {
             console.error('Erro ao verificar status:', error);
-            toast({
-              title: "Erro",
-              description: "Erro ao verificar status da conexão",
-              variant: "destructive",
-            });
+            // Não mostrar erro de verificação de status como erro crítico
+            console.log('Continuando sem verificação de status automática');
           }
         }
       );
@@ -115,6 +121,7 @@ export function useWhatsAppConnections() {
   };
 
   const clearQRCode = () => {
+    console.log('Limpando QR Code');
     setQrCode('');
     setCountdown(0);
   };

@@ -13,11 +13,15 @@ export default function Conexoes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { connections, isLoading, qrCode, countdown, fetchConnections, deleteConnection, clearQRCode } = useWhatsAppConnections();
 
+  console.log('Conexoes render - qrCode:', qrCode ? 'presente' : 'vazio');
+  console.log('Conexoes render - countdown:', countdown);
+
   useEffect(() => {
     fetchConnections();
   }, []);
 
   const handleConnectionSuccess = () => {
+    console.log('handleConnectionSuccess chamado - qrCode:', qrCode ? 'presente' : 'vazio');
     // Don't close modal immediately when QR code is shown
     if (!qrCode) {
       setIsModalOpen(false);
@@ -32,6 +36,7 @@ export default function Conexoes() {
   };
 
   const handleCloseQRCode = () => {
+    console.log('handleCloseQRCode chamado');
     clearQRCode();
     setIsModalOpen(false);
   };
@@ -149,11 +154,13 @@ export default function Conexoes() {
         </Dialog>
 
         {/* QR Code Modal */}
-        <WhatsAppQRCode 
-          qrCode={qrCode}
-          countdown={countdown}
-          onClose={handleCloseQRCode}
-        />
+        {qrCode && (
+          <WhatsAppQRCode 
+            qrCode={qrCode}
+            countdown={countdown}
+            onClose={handleCloseQRCode}
+          />
+        )}
       </div>
     </div>
   );

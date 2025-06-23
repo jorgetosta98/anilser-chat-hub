@@ -10,7 +10,16 @@ interface WhatsAppQRCodeProps {
 }
 
 export function WhatsAppQRCode({ qrCode, countdown, onClose }: WhatsAppQRCodeProps) {
-  if (!qrCode) return null;
+  console.log('WhatsAppQRCode render - qrCode:', qrCode ? 'presente' : 'vazio');
+  console.log('WhatsAppQRCode render - qrCode length:', qrCode.length);
+  console.log('WhatsAppQRCode render - countdown:', countdown);
+
+  if (!qrCode) {
+    console.log('QR Code vazio, não renderizando modal');
+    return null;
+  }
+
+  console.log('Renderizando modal do QR Code');
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -31,8 +40,10 @@ export function WhatsAppQRCode({ qrCode, countdown, onClose }: WhatsAppQRCodePro
           <div className="mb-4">
             <img 
               src={qrCode} 
-              alt="QR Code WhatsApp" 
+              alt="QR Code WhatsApp"
               className="mx-auto max-w-full h-auto rounded-lg border"
+              onLoad={() => console.log('Imagem QR Code carregada com sucesso')}
+              onError={(e) => console.error('Erro ao carregar imagem QR Code:', e)}
             />
           </div>
           
