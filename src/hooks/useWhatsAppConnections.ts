@@ -28,7 +28,7 @@ export function useWhatsAppConnections() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('whatsapp_connections' as any)
+        .from('whatsapp_connections')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -134,12 +134,12 @@ export function useWhatsAppConnections() {
 
       // Save connection to database
       const { data, error } = await supabase
-        .from('whatsapp_connections' as any)
+        .from('whatsapp_connections')
         .insert({
           user_id: user.id,
           instance_name: connectionData.instance_name,
           whatsapp_number: connectionData.whatsapp_number,
-          status: 'pending'
+          status: 'pending' as const
         })
         .select()
         .single();
@@ -171,7 +171,7 @@ export function useWhatsAppConnections() {
 
     try {
       const { data, error } = await supabase
-        .from('whatsapp_connections' as any)
+        .from('whatsapp_connections')
         .update(updates)
         .eq('id', id)
         .eq('user_id', user.id)
@@ -198,7 +198,7 @@ export function useWhatsAppConnections() {
 
     try {
       const { error } = await supabase
-        .from('whatsapp_connections' as any)
+        .from('whatsapp_connections')
         .delete()
         .eq('id', id)
         .eq('user_id', user.id);
