@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { WhatsAppConnection } from '@/types/whatsapp';
 import { useToast } from '@/hooks/use-toast';
 import { useWhatsAppDatabase } from './useWhatsAppDatabase';
-import { useWhatsAppMessages } from './useWhatsAppMessages';
 import { generateQRCode, checkConnectionStatus } from '@/services/whatsappService';
 import { getErrorMessage, createCountdownTimer } from '@/utils/whatsappUtils';
 
@@ -21,21 +20,11 @@ export function useWhatsAppConnections() {
     deleteConnection: dbDeleteConnection 
   } = useWhatsAppDatabase();
 
-  // Integração com mensagens do WhatsApp
-  const { fetchConversations, fetchMessages } = useWhatsAppMessages();
-
   const fetchConnections = async () => {
     setIsLoading(true);
     try {
       const data = await dbFetchConnections();
       setConnections(data);
-      
-      // Para cada conexão conectada, buscar conversas
-      for (const connection of data) {
-        if (connection.status === 'connected' && connection.id) {
-          await fetchConversations(connection.id);
-        }
-      }
     } finally {
       setIsLoading(false);
     }
@@ -184,16 +173,6 @@ export function useWhatsAppConnections() {
     setCountdown(0);
   };
 
-  // Função para buscar mensagens de uma conexão específica
-  const getConnectionMessages = async (connectionId: string, participantNumber?: string) => {
-    return await fetchMessages(connectionId, participantNumber);
-  };
-
-  // Função para buscar conversas de uma conexão específica
-  const getConnectionConversations = async (connectionId: string) => {
-    return await fetchConversations(connectionId);
-  };
-
   return {
     connections,
     isLoading,
@@ -204,7 +183,5 @@ export function useWhatsAppConnections() {
     updateConnection,
     deleteConnection,
     clearQRCode,
-    getConnectionMessages,
-    getConnectionConversations,
   };
 }
