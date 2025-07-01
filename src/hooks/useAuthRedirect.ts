@@ -13,8 +13,8 @@ export function useAuthRedirect() {
       const currentPath = window.location.pathname;
       const keepLoggedIn = localStorage.getItem('keepLoggedIn') === 'true';
       
-      // Se estiver na página de auth e estiver logado, redirecionar
-      if ((currentPath === '/auth' || currentPath === '/') && user && profile) {
+      // Se estiver na página raiz (/) e estiver logado, redirecionar
+      if (currentPath === '/' && user && profile) {
         console.log('Redirecionando usuário logado:', profile.role);
         if (profile.role === 'admin') {
           navigate('/admin', { replace: true });
